@@ -27,7 +27,7 @@
   action:
     service: light.turn_on
     entity_id:
-      - light.laser_nocturnal
+      - light.spots_noturnos
 
 
 - id: "4000000004020"
@@ -51,7 +51,7 @@
   action:
     service: light.turn_off
     entity_id:
-      - light.laser_nocturnal
+      - light.spots_noturnos
 
 
 # AUTOMACOES PARA ACENDER CONJUNTO DE DISPOSITIVOS
@@ -72,7 +72,7 @@
       entity_id: light.spots_dicroicas
     - service: light.turn_on
       data: {}
-      entity_id: light.dicroicas_noturna_gourmet
+      entity_id: light.spots_noturnos
     - service: light.turn_on
       data: {}
       entity_id: light.spots_tv
@@ -107,7 +107,7 @@
       entity_id: light.spots_dicroicas
     - service: light.turn_off
       data: {}
-      entity_id: light.dicroicas_noturna_gourmet
+      entity_id: light.spots_noturnos
     - service: light.turn_off
       data: {}
       entity_id: light.spots_tv
@@ -158,7 +158,7 @@
         message: "Liguei o exaustor da coifa da churrasqueira e acendi as luzes dela também."
 
 - id: "4000000004060"
-  alias: 40060 - Area de lazer, Desliga Coifa
+  alias: 4060 - Area de lazer, Desliga Coifa
   description: ""
   trigger:
     - platform: state
