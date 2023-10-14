@@ -1,0 +1,332 @@
+#
+#  ___         _____         _        _         _                        _   _                       
+# |_ _|_ __   |_   _|__  ___| |_     / \  _   _| |_ ___  _ __ ___   __ _| |_(_) ___  _ __  _ __  ___ 
+#  | || '_ \    | |/ _ \/ __| __|   / _ \| | | | __/ _ \| '_ ` _ \ / _` | __| |/ _ \| '_ \| '_ \/ __|
+#  | || | | |   | |  __/\__ \ |_   / ___ \ |_| | || (_) | | | | | | (_| | |_| | (_) | | | | | | \__ \
+# |___|_| |_|   |_|\___||___/\__| /_/   \_\__,_|\__\___/|_| |_| |_|\__,_|\__|_|\___/|_| |_|_| |_|___/
+#
+
+# http://www.network-science.de/ascii/  (standard)
+
+
+
+- id: '9999000009010'
+  alias: 9010 - cozinha luz auto acende BLE
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.hlk_ld2410_c467_occupancy
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+  action:
+    - service: light.turn_on
+      entity_id:
+      - light.luz_cozinha_1
+      - light.luz_cozinha_2
+   #   - light.light_hall_garage
+        
+        
+- id: '9999000009020'
+  alias: 9020 - cozinha Apagar Luz com Sensor BLE
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.hlk_ld2410_c467_occupancy
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+  - platform: state
+    entity_id: input_boolean.modo_visitas
+    to: 'off'
+      
+  condition:
+    - condition: state
+      entity_id: input_boolean.modo_visitas
+      state: "off"  # Modo visitas Desligado
+    - condition: state
+      entity_id: binary_sensor.hlk_ld2410_c467_occupancy
+      state: "off"  # Sem presença
+  
+  action:
+    - service: light.turn_off
+      entity_id:
+      - light.luz_cozinha_1
+      - light.luz_cozinha_2
+   #   - light.light_hall_garage
+
+
+################################ SENSORES DE CAMA QUARTO #########################
+
+
+- id: '9999000009030'
+  alias: 9030 - bed_lu_detected
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.ts0203_01_bed_lu
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  condition: []
+  action:
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.bed_lu
+  mode: single
+
+
+- id: '9999000009040'
+  alias: 9040 - bed_lu_clear
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.ts0203_01_bed_lu
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.bed_lu
+  mode: single
+
+
+- id: '9999000009050'
+  alias: 9050 - bed_fe_detected
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.ts0203_02_bed_fe
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  condition: []
+  action:
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.bed_fe
+  mode: single
+
+
+- id: '9999000009060'
+  alias: 9060 - bed_fe_clear
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.ts0203_02_bed_fe
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.bed_fe
+  mode: single
+
+
+- id: '9999000009070'
+  alias: 9070 - chair_3_detected
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.ts0203_05_contact
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  condition: []
+  action:
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.chair_3
+  mode: single
+
+
+- id: '9999000009080'
+  alias: 9080 - chair_3_clear
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.ts0203_05_contact
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.chair_3
+  mode: single
+
+
+###################################################################
+
+- id: "9999000009090"
+- alias: 9090 - Notificação para Lu ao deitar na cama
+  trigger:
+    - platform: state
+      entity_id: sensor.lu_na_cama
+      to: 'not_in_bed'
+    
+  condition:
+    condition: and
+    conditions:
+      - condition: time
+        after: "20:00:00"
+      - condition: time
+        before: "02:00:00"
+      - condition: template
+        value_template: "{{ states('sensor.date') != states('sensor.last_lie_in_bed_lu_notification_date') }}"
+
+  action:
+    - service: input_text.set_value
+      data:
+        entity_id: input_text.last_lie_in_bed_lu_notification_date  # atualiza o sensor que foi exacutada
+        value: "{{ states('sensor.date') }}"
+        
+    - service: notify.alexa_media
+      data:
+        target:
+            - media_player.echoshow_luciana
+        data:
+          type: tts #ou announce
+        message: "Boa noite Lu. Durma bem e sonhe com os anginhos."
+
+
+#####################
+
+
+- id: "9999000009100"
+- alias: 9100 - Notificação para Lu ao levantar da cama
+  trigger:
+    - platform: state
+      entity_id: sensor.lu_na_cama
+      to: 'in_bed'
+        
+  condition:
+    condition: and
+    conditions:
+      - condition: time
+        after: "05:00:00"
+      - condition: time
+        before: "08:00:00"        
+      - condition: template
+        value_template: "{{ states('sensor.date') != states('sensor.last_get_up_lu_notification_date') }}"
+
+  action:
+    - service: input_text.set_value
+      data:
+        entity_id: input_text.last_get_up_lu_notification_date  # atualiza o sensor que foi exacutada
+        value: "{{ states('sensor.date') }}"
+        
+    - service: notify.alexa_media
+      data:
+        target:
+            - media_player.echoshow_luciana
+        data:
+          type: tts #ou announce
+        message: "Bom dia Lu! Que o seu dia seja repleto de alegria, conquistas e momentos especiais. Aproveite cada instante ao máximo e lembre-se de sorrir sempre. Tenha um dia maravilhoso!"
+
+        
+
+- id: "9999000009110"
+- alias: 9110 - teste de comandos
+  trigger:
+    - platform: state
+      entity_id: sensor.lu_na_cama
+      to: "in_bed"
+ #   for: "00:00:10"
+        
+ # condition:
+ #   condition: and
+  #  conditions:
+ #     - condition: time
+   #     after: "05:00:00"
+    #  - condition: time
+ #       before: "08:00:00"        
+
+  action:
+    - service: notify.alexa_media
+      data:
+        target:
+            - media_player.echoshow_escritorio
+        data:
+ #         media_content_type: custom
+  #        media_content_id: 'que horas são?'
+          type: tts #ou announce
+        message: Oi!!!
+        
+        
+################################ SENSORES DE ASSENTO HT #########################
+
+- id: "9999000009120"
+- alias: 9120 - Notificação de Sentar na poltrona 3 do HT
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.ts0203_05_contact
+      to: "off"
+      for: "00:00:10"
+
+  action:
+    - service: notify.alexa_media
+      data:
+        target:
+            - media_player.echodot_pia
+        data:
+          type: tts #ou announce
+        message: "Sentou!"
+
+- id: "9999000003003"
+- alias: Notificação de Levantar da poltrona 3 do HT
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.ts0203_05_contact
+      to: "on"
+      for: "00:00:10"
+
+  action:
+    - service: notify.alexa_media
+      data:
+        target:
+            - media_player.echodot_pia
+        data:
+          type: tts #ou announce
+        message: "Levantou!"
+
+

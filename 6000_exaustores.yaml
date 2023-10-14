@@ -1,0 +1,36 @@
+#                _                        _   _
+#     /\        | |                      | | (_)
+#    /  \  _   _| |_ ___  _ __ ___   __ _| |_ _  ___  _ __  ___
+#   / /\ \| | | | __/ _ \| '_ ` _ \ / _` | __| |/ _ \| '_ \/ __|
+#  / ____ \ |_| | || (_) | | | | | | (_| | |_| | (_) | | | \__ \
+# /_/    \_\__,_|\__\___/|_| |_| |_|\__,_|\__|_|\___/|_| |_|___/
+#
+###################### EXAUSTORES ###############################
+
+
+- id: "6000000000001"
+  alias: "6001 - Desliga Exaustor mezanino após tempo definido"
+  trigger:
+    - platform: state
+      entity_id: fan.exaustor_mezanino
+      to: "on"
+  action:
+    - delay:
+        minutes: "{{ states.input_number.define_tempo_exaustor_mezanino.state }}"
+    - service: fan.turn_off
+      entity_id: fan.exaustor_mezanino
+
+
+
+
+- id: "6000000000002"
+  alias: "6002 - Desliga Exaustor escritorio após tempo definido"
+  trigger:
+    - platform: state
+      entity_id: fan.office01_office_fan
+      to: "on"
+  action:
+    - delay:
+        minutes: "{{ states.input_number.sprinkler_runtime_01.state }}"
+    - service: fan.turn_off
+      entity_id: fan.office01_office_fan

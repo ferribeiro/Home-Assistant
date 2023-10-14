@@ -1,0 +1,43 @@
+#                _                        _   _
+#     /\        | |                      | | (_)
+#    /  \  _   _| |_ ___  _ __ ___   __ _| |_ _  ___  _ __  ___
+#   / /\ \| | | | __/ _ \| '_ ` _ \ / _` | __| |/ _ \| '_ \/ __|
+#  / ____ \ |_| | || (_) | | | | | | (_| | |_| | (_) | | | \__ \
+# /_/    \_\__,_|\__\___/|_| |_| |_|\__,_|\__|_|\___/|_| |_|___/
+#
+####################### COZINHA ################################
+
+# COZINHA
+# AUTOMACOES PARA ACENDER CONJUNTO DE LUZES
+
+- id: "3000000000000"
+  alias: Cozinha, Liga luzes
+  description: ""
+  trigger:
+    platform: state
+    entity_id: input_boolean.luz_cozinha
+    to: "on"
+  condition: []
+  action:
+    - service: light.turn_on
+      data: {}
+      entity_id: light.luz_cozinha_1
+    - service: light.turn_on
+      data: {}
+      entity_id: light.luz_cozinha_2
+
+- id: "3000000000001"
+  alias: Cozinha, Desliga luzes
+  description: ""
+  trigger:
+    platform: state
+    entity_id: input_boolean.luz_cozinha
+    to: "off"
+  condition: []
+  action:
+    - service: light.turn_off
+      data: {}
+      entity_id: light.luz_cozinha_1
+    - service: light.turn_off
+      data: {}
+      entity_id: light.luz_cozinha_2

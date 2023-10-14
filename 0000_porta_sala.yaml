@@ -1,0 +1,63 @@
+#                _                        _   _
+#     /\        | |                      | | (_)
+#    /  \  _   _| |_ ___  _ __ ___   __ _| |_ _  ___  _ __  ___
+#   / /\ \| | | | __/ _ \| '_ ` _ \ / _` | __| |/ _ \| '_ \/ __|
+#  / ____ \ |_| | || (_) | | | | | | (_| | |_| | (_) | | | \__ \
+# /_/    \_\__,_|\__\___/|_| |_| |_|\__,_|\__|_|\___/|_| |_|___/
+#
+######################## PORTA DA SALA #########################
+
+- id: "0000000000007"
+  alias: "Acender luzes ao abrir a porta à noite"
+  trigger:
+    - platform: state
+      entity_id: lock.lvng_zgb_20db_porta_frente
+      to: "locked"
+    - platform: state
+      entity_id: sun.sun
+      to: "below_horizon"
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: lock.lvng_zgb_20db_porta_frente
+        state: "locked"
+      - condition: state
+        entity_id: sun.sun
+        state: "below_horizon"
+  #      - condition: time
+  #        after: 'sunset'
+  #        before: 'sunrise'
+  action:
+    service: light.turn_on
+    entity_id:
+      - light.lvng_zgb_20db_varal
+      - light.lvng_zgb_20db_luz_externa_porta_sala
+      - light.lvng_zgb_20db_luz_interna_porta_sala
+
+- id: "0000000000008"
+  alias: "Apagar luzes ao fechar a porta"
+  trigger:
+    platform: state
+    entity_id: lock.lvng_zgb_20db_porta_frente
+    to: "unlocked"
+  action:
+    - delay: "00:00:02"
+    - service: light.turn_off
+      entity_id:
+        - light.lvng_zgb_20db_varal
+        - light.lvng_zgb_20db_luz_externa_porta_sala
+        - light.lvng_zgb_20db_luz_interna_porta_sala
+
+- id: "0000000000009"
+  alias: "Apagar luzes ao amanhecer"
+  trigger:
+    platform: state
+    entity_id: sun.sun
+    to: "above_horizon"
+  action:
+    service: light.turn_off
+    entity_id:
+      - light.lvng_zgb_20db_varal
+      - light.lvng_zgb_20db_luz_externa_porta_sala
+      - light.lvng_zgb_20db_luz_interna_porta_sala
