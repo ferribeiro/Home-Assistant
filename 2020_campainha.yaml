@@ -16,7 +16,8 @@
 #----------------------------------------------------------------------
 
 # https://platform.openai.com/api-keys
-# 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
+#  api_key: !secret open_ia_key
+
 
 #      Alguem esta tocando o intefone na frente da casa. Analise as 3 imagens das câmeras e do interfone da portão da frente da minha casa. Descreva em detalhes o que aconteceu na imagem. Analize as 3 imagens como um todo, não descreva imagem por imagem. Não leia os textos inseridos pelo DVR. Não minta nem adicione informações adicionais que você não consiga ver nas imagens. Se você identificar algum risco de segurança, avise-me no final da mensagem. Não faça uma descrição longa.
 

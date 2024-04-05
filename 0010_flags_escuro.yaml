@@ -16,7 +16,7 @@
 #      entity_id: sensor.smart_button_action
 #      to: 'single'
 
-- id: '1712347890756'
+- id: 'exemplo_de_automaçao_com_trigger_id'
   alias: _teste trigger ID
   description: trigger id na bancada do escritorio
   
@@ -57,7 +57,7 @@
         data: {}
         target:
           entity_id: light.office01_out_13_bancada
-              
+     
   mode: single
   
 #    action:

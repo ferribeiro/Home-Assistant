@@ -559,3 +559,51 @@
 #      - light.luz_cozinha_2
 #   #   - light.light_hall_garage
 
+
+
+#  
+#  - id: 'exemplo_de_automaçao_com_trigger_id'
+#    alias: _teste trigger ID
+#    description: trigger id na bancada do escritorio
+#    
+#    trigger:
+#    
+#    - id: 'btn_single'
+#      platform: state
+#      entity_id: sensor.smart_button_action
+#      to: 'single'
+#      
+#    - id: 'btn_double'
+#      platform: state
+#      entity_id: sensor.smart_button_action
+#      to: 'double'
+#      
+#    condition: []
+#    action:
+#    - choose:
+#      - conditions:
+#        - condition: trigger
+#          id:
+#          - btn_single
+#        sequence:
+#        - service: light.turn_on
+#          metadata: {}
+#          data: {}
+#          target:
+#            entity_id: light.office01_out_13_bancada
+#  
+#    - choose:
+#      - conditions:
+#        - condition: trigger
+#          id:
+#          - btn_double
+#        sequence:
+#        - service: light.turn_off
+#          metadata: {}
+#          data: {}
+#          target:
+#            entity_id: light.office01_out_13_bancada
+#       
+#    mode: single
+#  
+
