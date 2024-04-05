@@ -1,0 +1,234 @@
+#                _                        _   _
+#     /\        | |                      | | (_)
+#    /  \  _   _| |_ ___  _ __ ___   __ _| |_ _  ___  _ __  ___
+#   / /\ \| | | | __/ _ \| '_ ` _ \ / _` | __| |/ _ \| '_ \/ __|
+#  / ____ \ |_| | || (_) | | | | | | (_| | |_| | (_) | | | \__ \
+# /_/    \_\__,_|\__\___/|_| |_| |_|\__,_|\__|_|\___/|_| |_|___/
+#
+################ SALA DE VISITAS E MEZANINO ####################
+
+# Sensores de luminisidade fica no arquivo templates.
+
+# ------------------------------ ACENDIMENTO DAS LUZES DO MEZANINO ---------------------------------------
+
+- id: "1000000001010"
+  alias: "0010 - Acender luz 2 do mezanino ao escurecer"
+  description: "Medida: acende quando luminisidade for menor que 480 lux e apaga com 460 lux"
+  trigger:
+    - platform: state
+      entity_id: sensor.flag_luminosidade_mezanino
+      to: "dim"
+
+  action:
+    service: light.turn_on
+    entity_id:
+      - light.mezzanine01_light2
+
+
+- id: "100000001011"
+  alias: "0022 - Acende as outras 2 luzes do mezanino ao ligar o modo visitas"
+  description: ""
+  trigger:
+    - platform: state
+      entity_id: sensor.flag_luminosidade_mezanino
+      to: "dim"
+    - platform: state
+      entity_id: input_boolean.modo_visitas
+      to: 'on'
+    
+  condition:
+    - condition: state
+      entity_id: input_boolean.modo_visitas
+      state: "on"  # Modo visitas Ligado
+    - condition: state
+      entity_id: sensor.flag_luminosidade_mezanino
+      state: "dim"
+    
+  action:
+    service: light.turn_on
+    entity_id:
+ #     - delay: '00:00:01'  # Aguarde 1 segundo
+      - light.mezzanine01_light1
+  #    - delay: '00:00:01'  # Aguarde 1 segundo
+      - light.mezzanine01_light3
+
+# ------------------------------ APAGAMENTO DAS LUZES DO MEZANINO ---------------------------------------
+
+- id: "1000000001021"
+  alias: "1032 - Apagar todas as luzes do mezanino ao sair do modo visitas ou 23:45 ou quando clarear, se nao estiver em modo visita"
+  trigger:
+    - platform: time
+      at: "23:45:00"
+    - platform: state
+      entity_id: input_boolean.modo_visitas
+      to: 'off'
+    - platform: state
+      entity_id: sensor.flag_luminosidade_mezanino
+      to: "light"
+
+  condition:
+    - condition: state
+      entity_id: input_boolean.modo_visitas
+      state: "off"  # Modo visitas Desligado
+
+  action:
+    service: light.turn_off
+    entity_id:
+      - light.mezzanine01_light1
+      - light.mezzanine01_light2
+      - light.mezzanine01_light3
+
+- id: "1000000001022"
+  alias: "1050 - Apagar todas as luzes 1 e 3 do mezanino ao sair do modo visitas"
+  description: ""
+  
+  trigger:
+    - platform: state
+      entity_id: input_boolean.modo_visitas
+      to: 'off'
+
+#    condition:
+#    - condition: state
+#      entity_id: sensor.flag_luminosidade_mezanino
+#      state: "light"
+
+  action:
+    service: light.turn_off
+    entity_id:
+      - light.mezzanine01_light1
+      - light.mezzanine01_light3
+
+
+# ------------------------------ ACENDIMENTO DAS LUZES DA SALA ---------------------------------------
+
+- id: "1000000001030"
+  alias: "1030 - Acender luzes da sala de visitas ao escurecer"
+  description: ""
+  trigger:
+    - platform: state
+      entity_id: sensor.flag_luminosidade_sala
+      to: "dim"
+  action:
+    service: light.turn_on
+    entity_id:
+      - light.luz_escada_da_sala
+      - light.luzes_lateral_da_sala
+      
+
+- id: "1000000001031"
+  alias: "1031 - Acender luz do fundo da sala de visitas ao escurecer no modo visitas"
+  description: ""
+  trigger:
+    - platform: state
+      entity_id: sensor.flag_luminosidade_sala
+      to: "dim"
+    - platform: state
+      entity_id: input_boolean.modo_visitas
+      to: 'on'
+    
+  condition:
+    - condition: state
+      entity_id: input_boolean.modo_visitas
+      state: "on"  # Modo visitas Ligado
+    - condition: state
+      entity_id: sensor.flag_luminosidade_sala
+      state: "dim"
+    
+  action:
+    service: light.turn_on
+    entity_id:
+      - light.luzes_fundo_da_sala 
+
+# ------------------------------ APAGAMENTO DAS LUZES DA SALA ---------------------------------------
+
+- id: "1000000001032"
+  alias: "1032 - Apagar luz do fundo da sala de visitas ao sair do modo visitas ou clarear"
+  description: ""
+  trigger:
+    - platform: state
+      entity_id: sensor.flag_luminosidade_sala
+      to: "light"
+    - platform: state    # ???? duplicado ????
+      entity_id: input_boolean.modo_visitas
+      to: 'off'
+    
+  action:
+    service: light.turn_off
+    entity_id:
+      - light.luzes_fundo_da_sala
+
+
+- id: "1000000001040"
+  alias: "1040 - Apagar luzes da lateral da sala"
+  description: ""
+  trigger:
+    - platform: time
+      at: "22:03:00"
+    - platform: state
+      entity_id: input_boolean.modo_visitas
+      to: 'off'
+    - platform: state
+      entity_id: sensor.flag_luminosidade_sala
+      to: "light"
+
+  condition:
+    - condition: state
+      entity_id: input_boolean.modo_visitas
+      state: "off"  # Modo visitas Ligado
+    - condition: state
+      entity_id: sensor.flag_luminosidade_sala
+      state: "light"
+
+  action:
+    service: light.turn_off
+    entity_id:
+      - light.luzes_lateral_da_sala
+
+
+- id: "1000000001050"
+  alias: "1051 - Apagar todas as luzes da sala após 23h ou ao clarear"
+  description: ""
+  
+  trigger:
+    - platform: time
+      at: "23:38:00"
+    - platform: state
+      entity_id: sensor.flag_luminosidade_sala
+      to: "light"
+
+  condition:
+    - condition: state
+      entity_id: input_boolean.modo_visitas
+      state: "off"  # Modo visitas Desligado
+
+  action:
+    service: light.turn_off
+    entity_id:
+      - light.luz_escada_da_sala   
+      - light.luzes_lateral_da_sala 
+      - light.luzes_fundo_da_sala          
+
+- id: "1000000001050"
+  alias: "1050 - Apagar todas as luzes da sala ao sair do modo visitas"
+  description: ""
+  
+  trigger:
+    - platform: state
+      entity_id: input_boolean.modo_visitas
+      to: 'off'
+
+  condition:
+    - condition: time
+      after:  "23:38:00"
+#      before: "06:00:00"
+    - condition: state
+      entity_id: sensor.flag_luminosidade_sala
+      state: "light"
+
+  action:
+    service: light.turn_off
+    entity_id:
+      - light.luz_escada_da_sala   
+      - light.luzes_lateral_da_sala 
+      - light.luzes_fundo_da_sala 
+

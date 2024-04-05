@@ -1,0 +1,575 @@
+####################################################################################################
+#   ____                                 _         _                        _   _                  #
+#  / ___| __ _ _ __ __ _  __ _  ___     / \  _   _| |_ ___  _ __ ___   __ _| |_(_) ___  _ __  ___  #
+# | |  _ / _` | '__/ _` |/ _` |/ _ \   / _ \| | | | __/ _ \| '_ ` _ \ / _` | __| |/ _ \| '_ \/ __| #
+# | |_| | (_| | | | (_| | (_| |  __/  / ___ \ |_| | || (_) | | | | | | (_| | |_| | (_) | | | \__ \ #
+#  \____|\__,_|_|  \__,_|\__, |\___| /_/   \_\__,_|\__\___/|_| |_| |_|\__,_|\__|_|\___/|_| |_|___/ #
+#                        |___/                                                                     #
+####################################################################################################
+# http://www.network-science.de/ascii/  (standard)
+
+# Automações neste arquivo:
+# 0100 - Acende as luzes noturnas da garagem ao anoitecer;
+# 0200 - Apaga as luzes noturnas da garagem ao amanhecer;
+# 0300 - Acende luzes Garagem2 (forte) ao abrir a porta do hall-garagem se for noite;
+# 0400 - Acende luzes do Hall-Garagem ao abrir a porta do hall-garagem se for noite;
+# 0500 - Apaga luzes Garagem2 (forte) ao fechar a porta do hall-garagem;
+# 0600 - Apaga luzes Hall-Garagem ao fechar a porta do hall-garagem;
+# 0700 - Acende luzes Garagem2 (forte) ao abrir a portao da garagem à for noite;
+# 0800 - Acende Refletores do corredor da garagem ao abrir a portao da garagem à for noite;
+# 0900 - Acende Refletor do porão da garagem ao abrir a portao da garagem à for noite;
+# 1000 - Apaga Refletor do porão da garagem ao fechar a portao da garagem à for noite;
+# 1010 - Apaga Refletores do corredor da garagem ao fechar a portao da garagem;
+# 1020 - Apaga luzes Garagem2 (forte) aofechar a porta hall-garagem;
+# 1030 - Apaga luzes Garagem2 (forte) depois de um tempo de fechar a portao da garagem para atender quando saimos de casa;
+# 1040 - Notifica em todas as Alexas que o portão da garagem foi aberto;
+# 1050 - Notifica em todas as Alexas que o portão da garagem foi aberto;
+# 1060 - Notifica em todas as Alexas que o portão da garagem esta aberto a um determinado tempo;
+
+################ NOTIFICAÇÕES DO PORTÃO DA GARAGEM  ###############################
+
+
+- id: "1020000001040"
+  alias: "garagem-040 - Notifica ao abrir portao"
+  description: "Notifica (por hora somente na alexa) ao abrir o portão"
+  trigger:
+    - platform: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      to: "locked" # Aberto
+      for:
+        seconds: 2
+  action:
+    - service: notify.alexa_media
+      data:
+        target:
+#            - media_player.todas_as_alexas
+            - media_player.echoshow_escritorio
+            - media_player.echodot
+            - media_player.echoshow_10
+            - media_player.echoshow_luciana
+            - media_player.firetv_home_theater
+            - media_player.firetv_loja
+            - media_player.firetv_quarto_casal
+            - media_player.this_device
+        data:
+          type: tts #ou announce
+        message: "O portão da garagem foi aberto"
+
+
+- id: "1020000001050"
+  alias: "garagem-050 - Notifica ao fechar portao"
+  description: "Notifica (por horaa somente na alexa) ao abrir o portão"
+  trigger:
+    - platform: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      to: "unlocked" # Fechado
+      for:
+        seconds: 2
+  action:
+    - service: notify.alexa_media
+      data:
+        target:
+#            - media_player.todas_as_alexas
+            - media_player.echoshow_escritorio
+            - media_player.echodot
+            - media_player.echoshow_10
+            - media_player.echoshow_luciana
+            - media_player.firetv_home_theater
+            - media_player.firetv_loja
+            - media_player.firetv_quarto_casal
+            - media_player.this_device
+        data:
+          type: tts #ou announce
+        message: "O portão da garagem foi fechado"
+        
+        
+- id: "1020000001060"
+  description: "Notifica...."
+  alias: "garagem-060 - Notifica Portão aberto a um determinado tempo"
+  trigger:
+    - platform: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      to: "locked"  # Aberto
+      for:
+    #    minutes: 1
+        seconds: 61
+  
+  action:
+      repeat:
+        sequence:
+          - service: notify.alexa_media
+            data_template:
+              message: >
+                O portão da Garagem já está aberto há mais de {{ (now().timestamp() - as_timestamp(states.lock.garage_zgb_l3.last_changed)) | int // 60}} minutos.
+              target:
+#                  - media_player.todas_as_alexas
+                  - media_player.echoshow_escritorio
+                  - media_player.echodot
+                  - media_player.echoshow_10
+                  - media_player.echoshow_luciana
+                  - media_player.firetv_home_theater
+                  - media_player.firetv_loja
+                  - media_player.firetv_quarto_casal
+                  - media_player.this_device
+            data:
+              data:
+                type: tts
+          - delay:
+              seconds: 61
+        until:
+          - condition: state
+            entity_id: lock.garage_zgb_l3
+            state: "unlocked"  # Fechado
+
+
+################ TRATAMENTO FECHAMENTO DA PORTAO DA GARAGEM ###############################
+    
+- id: "1020000001000"
+  alias: "garagem-000 - garagem apaga refletor do portao ao fechar portao"
+  description: "Apaga refletor do portao ao fechar portao da garagem por 2 segundos, se este tiver sido aceso pela automação"
+  trigger:
+    - platform: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      to: "unlocked"  # Fechado
+      for:
+        seconds: 60
+    - platform: state
+#      entity_id: sun.sun
+#      to: "above_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "light"
+      
+  condition:
+    - condition: state
+      entity_id: input_boolean.refletor_portao_garagem_ligado_portao
+      state: "on"
+
+  action:
+#    - delay: "00:00:01"
+    - service: light.turn_off
+      entity_id: light.garage_zgb_l6
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.refletor_portao_garagem_ligado_portao # Seta este flag se a luz foi acesa por esta automaçao.
+
+
+
+- id: "1020000001010"
+  alias: "garagem-010 - garagem apaga refletores do corredor ao fechar portao"
+  description: "Apaga refletores do corredor ao fechar portao da garagem por 3 segundos, se este tiver sido aceso pela autommação"
+  trigger:
+    - platform: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      to: "unlocked"  # Fechado
+      for:
+        seconds: 90
+    - platform: state
+#      entity_id: sun.sun
+#      to: "above_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "light"
+        
+  condition:
+#    - condition: state
+#      entity_id: lock.garage_zgb_l3 #portao garagem
+#      state: "unlocked"  # Fechado
+#    - condition: state
+#      entity_id: sun.sun
+#      state: "below_horizon"
+    - condition: state
+      entity_id: input_boolean.flag_refletores_corredor_garagem_ligado_portao
+      state: "on"
+
+  action:
+#    - delay: "00:00:01"
+    - service: light.turn_off
+      entity_id: light.garage_spotlights
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.flag_refletores_corredor_garagem_ligado_portao # Seta este flag se a luz foi acesa por esta automaçao.
+
+
+
+- id: "1020000001020"
+  alias: "garagem-020 - garagem apaga garagem2 ao fechar a porta"
+  description: "Apaga garagem2 ao fechar a porta do hall-garagem e após aberuta e fechamento do portao da garagem por 4 segundos, se este tiver sido aceso pela autommação"
+  trigger:
+    - platform: state
+      entity_id: lock.door_hall_garage
+      to: "unlocked"  # Fechado
+      for:
+        seconds: 60
+    - platform: state
+#      entity_id: sun.sun
+#      to: "above_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "light"
+        
+  condition:
+    - condition: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      state: "unlocked"  # Fechado
+    - condition: state
+      entity_id: lock.door_hall_garage
+      state: "unlocked"  # Fechado
+    - condition: state
+#      entity_id: sun.sun
+#      state: "below_horizon"
+      entity_id: input_boolean.flag_luz_garagem2_ligada_portao
+      state: "on"
+
+  action:
+#    - delay: "00:00:01"
+    - service: light.turn_off
+      entity_id: light.light_garage2
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.flag_luz_garagem2_ligada_portao # Seta este flag se a luz foi acesa por esta automaçao.
+
+
+
+- id: "1020000001030"
+  alias: "garagem-030 - garagem apaga garagem2 depois de um tempo"
+  description: "Apaga garagem2 se após um tempo (5 minutos) após fechar a portao da garagem casoo a porta do hall ja esteja fechada anteriormente e se este tiver sido aceso pela autommação. Isso para o caso de estar saindo de casa de carro á noite"
+  trigger:
+    - platform: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      to: "unlocked"  # Fechado
+      for:
+        minutes: 55
+    - platform: state
+#      entity_id: sun.sun
+#      to: "above_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "light"
+
+  condition:
+    - condition: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      state: "unlocked"  # Fechado
+    - condition: state
+      entity_id: lock.door_hall_garage
+      state: "unlocked"  # Fechado
+#    - condition: state
+#      entity_id: sun.sun
+#      state: "below_horizon"
+    - condition: state
+      entity_id: input_boolean.flag_luz_garagem2_ligada_portao
+      state: "on"
+
+  action:
+#    - delay: "00:00:01"
+    - service: light.turn_off
+      entity_id: light.light_garage2
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.flag_luz_garagem2_ligada_portao # Seta este flag se a luz foi acesa por esta automaçao.
+
+
+#Melhorar a automaçao 1030
+
+# alias: 'Controle de Luz - Portão e Porta'
+# trigger:
+#   - platform: state
+#     entity_id: lock.garage_zgb_l3 #portao garagem
+#     from: "locked"  # Aberto
+#     to: "unlocked"  # Fechado
+
+# action:
+#   - service: light.turn_on
+#     entity_id: light.light_garage2
+#   - wait_template: "{{ is_state('lock.door_hall_garage', 'locked') }}"
+#     timeout: '00:05:00'
+#     continue_on_timeout: false
+#   - service: light.turn_off
+#     entity_id: light.light_garage2
+
+
+################ TRATAMENTO ABERTURA DA PORTAO DA GARAGEM ###############################
+
+- id: "1020000000700"
+  alias: "0700 - garagem acende garagem2 a noite ao abrir portao"
+  description: "Acende luz garagem 2 ao abrir porta da garagem por 3 segundos à noite, se esta NAO tiver sido acesa anteriormente"
+  trigger:
+    - platform: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      to: "locked" # Aberto
+      for:
+        seconds: 3
+    - platform: state
+#      entity_id: sun.sun
+#      to: "below_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "dim"
+        
+  condition:
+    - condition: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      state: "locked" # Aberto
+    - condition: state
+#      entity_id: sun.sun
+#      state: "below_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      state: "dim"
+    - condition: state
+      entity_id: light.light_garage2
+      state: "off"
+
+  action:
+#    - delay: "00:00:01"
+    - service: light.turn_on
+      entity_id: light.light_garage2
+    - service: input_boolean.turn_on
+      entity_id: input_boolean.flag_luz_garagem2_ligada_portao # Seta este flag se a luz foi acesa por esta automaçao.
+
+
+- id: "1020000000800"
+  alias: "0800 - garagem acende refletores a noite ao abrir portao"
+  description: "Acende refletores do corredor ao abrir portao da garagem por 2 segundos à noite, se este NAO tiver sido aceso anteriormente"
+  trigger:
+    - platform: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      to: "locked" # Aberto
+      for:
+        seconds: 2
+    - platform: state
+#      entity_id: sun.sun
+#      to: "below_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "dim"
+        
+  condition:
+    - condition: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      state: "locked" # Aberto
+    - condition: state
+#      entity_id: sun.sun
+#      state: "below_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      state: "dim"
+    - condition: state
+      entity_id: light.garage_spotlights
+      state: "off"
+
+  action:
+#    - delay: "00:00:01"
+    - service: light.turn_on
+      entity_id: light.garage_spotlights
+    - service: input_boolean.turn_on
+      entity_id: input_boolean.flag_refletores_corredor_garagem_ligado_portao # Seta este flag se a luz foi acesa por esta automaçao.
+
+
+- id: "1020000000900"
+  alias: "0900 - garagem acende refletor do portao a noite ao abrir portao"
+  description: "Acende refletor do portao ao abrir portao da garagem por 1 segundos à noite, se este NAO tiver sido aceso anteriormente"
+  trigger:
+    - platform: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      to: "locked" # Aberto
+      for:
+        seconds: 1
+    - platform: state
+#      entity_id: sun.sun
+#      to: "below_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "dim"
+      
+  condition:
+    - condition: state
+      entity_id: lock.garage_zgb_l3 #portao garagem
+      state: "locked" # Aberto
+    - condition: state
+#      entity_id: sun.sun
+#      state: "below_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      state: "dim"
+    - condition: state
+      entity_id: light.garage_zgb_l6
+      state: "off"
+
+  action:
+#    - delay: "00:00:01"
+    - service: light.turn_on
+      entity_id: light.garage_zgb_l6
+    - service: input_boolean.turn_on
+      entity_id: input_boolean.refletor_portao_garagem_ligado_portao # Seta este flag se a luz foi acesa por esta automaçao.
+
+################ TRATAMENTO ABERTURA E FECHAMENTO DA PORTA HALL-GARAGEM ###############################
+
+- id: "1020000000300"
+  alias: "0300 - garagem acende garagem2 a noite ao abrir porta"
+  description: "Acende luz garagem 2 ao abrir porta da garagem por 2 segundos à noite, se esta NAO tiver sido acesa anteriormente"
+  trigger:
+    - platform: state
+      entity_id: lock.door_hall_garage
+      to: "locked" # Aberto
+      for:
+        seconds: 2
+    - platform: state
+#      entity_id: sun.sun
+#      to: "below_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "dim"
+
+  condition:
+    - condition: state
+      entity_id: lock.door_hall_garage
+      state: "locked" # Aberto
+    - condition: state
+#      entity_id: sun.sun
+#      state: "below_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      state: "dim"
+    - condition: state
+      entity_id: light.light_garage2
+      state: "off"
+
+  action:
+#    - delay: "00:00:01"
+    - service: light.turn_on
+      entity_id: light.light_garage2
+    - service: input_boolean.turn_on
+      entity_id: input_boolean.flag_luz_garagem2_ligada_porta # Seta este flag se a luz foi acesa por esta automaçao.
+      
+- id: "1020000000400"
+  alias: "0400 - garagem acende hall garagem a noite ao abrir porta"
+  description: "Acende luz garagem 2 ao abrir porta da garagem por 3 segundos à noite, se esta NAO tiver sido acesa anteriormente"
+  trigger:
+    - platform: state
+      entity_id: lock.door_hall_garage
+      to: "locked" # Aberto
+      for:
+        seconds: 2
+    - platform: state
+#      entity_id: sun.sun
+#      to: "below_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "dim"
+        
+  condition:
+    - condition: state
+      entity_id: lock.door_hall_garage
+      state: "locked" # Aberto
+    - condition: state
+#      entity_id: sun.sun
+#      state: "below_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      state: "dim"
+    - condition: state
+      entity_id: light.light_hall_garage
+      state: "off"
+
+  action:
+#    - delay: "00:00:01"
+    - service: light.turn_on
+      entity_id: light.light_hall_garage
+    - service: input_boolean.turn_on
+      entity_id: input_boolean.flag_luz_hall_da_garagem_ligada_porta # Seta este flag se a luz foi acesa por esta automaçao.
+
+
+
+- id: "102000000500"
+  alias: "0500 - garagem apaga garagem2 ao fechar a porta"
+  description: "Apaga luz garagem 2 ao fechar porta da garagem por 8 segundos qualquer ou se amanhecer, se esta NAO tiver sido acesa pela automação anterior"
+  trigger:
+    - platform: state
+      entity_id: lock.door_hall_garage
+      to: "unlocked"  # Fechado
+      for:
+        seconds: 360
+    - platform: state
+#      entity_id: sun.sun
+#      to: "above_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "light"
+        
+  condition:
+#    - condition: state
+#      entity_id: lock.door_hall_garage
+#      state: "unlocked"  # Fechado
+#    - condition: state
+#      entity_id: sun.sun
+#      state: "below_horizon"
+    - condition: state
+      entity_id: input_boolean.flag_luz_garagem2_ligada_porta
+      state: "on"
+
+  action:
+#    - delay: "00:00:01"
+    - service: light.turn_off
+      entity_id: light.light_garage2
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.flag_luz_garagem2_ligada_porta # Reseta este flag se a luz foi acesa por esta automaçao.
+
+
+- id: "102000000600"
+  alias: "0600 - Hall garagem apaga hall-garagem ao fechar a porta"
+  description: "Apaga luz do hall-garagem ao fechar porta da garagem por 30 segundos ou se amanhecer, se esta NAO tiver sido acesa pela automação anterior"
+
+  trigger:
+    - platform: state
+      entity_id: lock.door_hall_garage
+      to: "unlocked"  # Fechado
+      for:
+        seconds: 30
+    - platform: state
+#      entity_id: sun.sun
+#      to: "above_horizon"
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "light"
+
+  condition:
+#    - condition: state
+#      entity_id: lock.door_hall_garage
+#      state: "unlocked"  # Fechado
+#    - condition: state
+#      entity_id: sun.sun
+#      state: "below_horizon"
+    - condition: state
+      entity_id: input_boolean.flag_luz_hall_da_garagem_ligada_porta
+      state: "on"
+
+  action:
+    - service: light.turn_off
+      entity_id: light.light_hall_garage
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.flag_luz_hall_da_garagem_ligada_porta # Reseta este flag se a luz foi acesa por esta automaçao.
+
+
+#################################### GARAGEM NOTURNA ###################################################
+
+- id: '1020000000100'
+  alias: "0100 - garagem noturnas, acende, noite"
+  description: "Liga Luzes notorunas da garagem 2 minutos apos o por do sol"
+  trigger:
+#  - event: sunset
+#    offset: 00:02:00
+#    platform: sun
+    - platform: state
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "dim"
+
+  condition: []
+  
+  action:
+  - data: {}
+    entity_id: light.light_garage1
+    service: light.turn_on
+  mode: single      
+
+
+- id: "1020000000200"
+  alias: "0200 - garagem noturnas, apaga, dia"
+  description: "Desliga luzes noturnas da garagem 5 minutos antes do nascer do sol"
+  trigger:
+#    - event: sunrise
+#      offset: -00:05:00
+#      platform: sun
+    - platform: state
+      entity_id: sensor.flag_luminosidade_garagem
+      to: "light"
+
+  condition: []
+  
+  action:
+    - data: {}
+      entity_id: light.light_garage1
+      service: light.turn_off
+
+      

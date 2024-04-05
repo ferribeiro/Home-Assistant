@@ -1,0 +1,518 @@
+#                _                        _   _
+#     /\        | |                      | | (_)
+#    /  \  _   _| |_ ___  _ __ ___   __ _| |_ _  ___  _ __  ___
+#   / /\ \| | | | __/ _ \| '_ ` _ \ / _` | __| |/ _ \| '_ \/ __|
+#  / ____ \ |_| | || (_) | | | | | | (_| | |_| | (_) | | | \__ \
+# /_/    \_\__,_|\__\___/|_| |_| |_|\__,_|\__|_|\___/|_| |_|___/
+#
+################################ SENSORES DE CAMA QUARTO #########################
+
+
+
+
+# LuZ do Hall da Garagem
+      
+#      - id: "0000000000014"
+#  alias: "014 - Acende luz do hall  se tiver alguém presente à noite, se esta nao tiver sido acesa anteriormente"
+#  description: ""
+#  trigger:
+#    - platform: state
+#      entity_id: binary_sensor.hlk_ld2410_hall_garagem_occupancy
+#      to: "locked"
+#  condition:
+#    - condition: state
+#      entity_id: light.light_garage2
+#      state: "off"
+#    - condition: sun
+#      after: sunset
+#  action:
+#    - service: light.turn_on
+#      entity_id: light.light_garage2
+#    - service: input_boolean.turn_on
+#      entity_id: input_boolean.luz_da_garagem_ja_acessa # Seta este flag se a luz tiver acessa anteriormente.
+#
+#- id: "0000000000015"
+#  alias: "015 - Apagar luz do hall se não tiver mais ninguém resente e se não acionada anteriormente"
+#  description: ""
+#  trigger:
+#    - platform: state
+#      entity_id: binary_sensor.hlk_ld2410_hall_garagem_occupancy
+#      to: "unlocked"
+#  condition:
+#    - condition: state
+#      entity_id: input_boolean.luz_da_garagem_ja_acessa # Testa flag se a luz tiver acessa anteriormente.
+#      state: "on"
+#  action:
+#    - delay: "00:00:03"
+#    - service: light.turn_off
+#      entity_id: light.light_garage2
+#    - service: input_boolean.turn_off
+#      entity_id: input_boolean.luz_da_garagem_ja_acessa # Reseta Flag
+
+# _    _  _ ___  ____ ____   ____ ____ _    ____   ____   _  _ ____ ___  ____ _  _ _ _  _ ____
+# |    |  |   /  |___ [__    [__  |__| |    |__|   |___   |\/| |___   /  |__| |\ | | |\ | |  |
+# |___ |__|  /__ |___ ___]   ___] |  | |___ |  |   |___   |  | |___  /__ |  | | \| | | \| |__|
+
+#- id: '0000000000004'
+#  alias: Mezanino, liga Luz 2 10 minutos antes do por do sol
+#  description: ''
+#  trigger:
+#  - event: sunset
+#    offset: -00:10:00
+#    platform: sun
+#  condition: []
+#  action:
+#  - data: {}
+#    entity_id: light.mezanino_luz_2
+#    service: light.turn_on
+#
+#- id: '0000000000005'
+#  alias: Sala Visitas, liga Luz da direita 5 minutos antes do por do sol
+#  description: ''
+#  trigger:
+#  - event: sunset
+#    offset: -00:5:00
+#    platform: sun
+#  condition: []
+#  action:
+#  - data: {}
+#    entity_id: light.sala_visita_luz_direita
+#    service: light.turn_on
+#
+#- id: '0000000000006'
+#  alias: Sala Visitas, diminui a iluminação as 21:07
+#  description: ''
+#  trigger:
+#  - at: '21:07:02'
+#    platform: time
+#  condition:
+#  - condition: or
+#    conditions:
+#    - condition: state
+#      entity_id: light.sala_visita_luz_direita
+#      state: 'on'
+#    - condition: state
+#      entity_id: light.sala_visita_luz_fundo
+#      state: 'on'
+#  action:
+#  - data: {}
+#    entity_id: light.luz_escada
+#    service: light.turn_on
+#  - data: {}
+#    entity_id: light.sala_visita_luz_direita
+#    service: light.turn_off
+#  - data: {}
+#    entity_id: light.sala_visita_luz_fundo
+#    service: light.turn_off
+#  mode: single
+
+# _    _  _ ___  ____ ____    ___  ____    _  _ _  _ ____ ____
+# |    |  |   /  |___ [__     |  \ |  |    |\/| |  | |__/ |  |
+# |___ |__|  /__ |___ ___]    |__/ |__|    |  | |__| |  \ |__|
+
+# Movido para o Nod Red em 15/09/2022
+
+#- id: '0000000000007'
+#  alias: Muro esquerdo, liga luzes do 10 minutos apos o por do sol
+#  description: ''
+#  trigger:
+#  - event: sunset
+#    offset: 00:10:00
+#    platform: sun
+#  condition: []
+#  action:
+#  - data: {}
+#    entity_id: light.luz_muro_direita
+#    service: light.turn_on
+#
+#- id: '0000000000008'
+#  alias: Muro esquerdo, desliga luzes 10 minutos antes do nascer do sol
+#  description: ''
+#  trigger:
+#  - event: sunrise
+#    offset: -00:10:00
+#    platform: sun
+#  condition: []
+#  action:
+#  - data: {}
+#    entity_id: light.luz_muro_direita
+#    service: light.turn_off
+#
+
+#========================================================================================
+#MINEIRACAO
+#========================================================================================
+
+#- id: '0000000000100'
+#  alias: Mineiracao, Notifica Rig Fora do ar.
+#  description: ''
+#  trigger:
+#    platform: numeric_state
+#    entity_id: sensor.flexpool_workers_offline
+#    above: '0'
+#  condition: []
+#  action:
+#  - service: notify.alexa_media
+#    data:
+#      target: media_player.todas_alexas_da_casa
+##      message: <amazon:emotion name="excited" intensity="medium">Resposta certa, parabéns!<amazon:emotion>
+#      message: Tem RIG fora do ar.
+#      data:
+#        type: tts
+#  - service: telegram_bot.send_message
+#    data_template:
+#      target: !secret tel_chat_id_fe
+#      message: Tem RIG fora do ar.
+
+##---------------- Abertura e Fechamento do portão da Garagem
+#
+#- id: '0000000000012'
+#  alias: 012 - Garagem, Notifica portão Aberto
+#  description: ''
+#  trigger:
+#    platform: state
+#    entity_id: binary_sensor.portao_garagem_zigbee_contact
+#    to: 'on'
+#  condition: []
+#  action:
+#  - service: notify.alexa_media
+#    data:
+#      target: media_player.todas_alexas_da_casa
+##      message: <amazon:emotion name="excited" intensity="medium">Resposta certa, parabéns!<amazon:emotion>
+#      message: O portão da garagem foi aberto
+#      data:
+#        type: tts
+#  - service: telegram_bot.send_message
+#    data_template:
+#      target: !secret tel_chat_id_fe
+#      message: Portao da Garagem foi aberto.
+#
+## ------------------ EM TESTE luz 2 com portão ---------------
+#
+#- id: '0000000000013'
+#  alias: 013 - Garagem, Luz 2, liga com abertura do portao
+#  description: ''
+#  trigger:
+#    platform: state
+#    entity_id: binary_sensor.portao_garagem_zigbee_contact
+#    to: 'on'
+#  condition: []
+#
+##  condition:
+##    condition: or
+##    conditions:
+##      - condition: sun
+##        after: sunset
+##        after_offset: '00:04:00'
+##      - condition: sun
+##        before: sunrise
+##        before_offset: '-00:08:00'
+#
+#  action:
+#  - data: {}
+#    entity_id: light.luz_escritorio
+#    service: light.turn_on
+#  - data: {}
+#    entity_id: light.garage_aux_light2_gate
+#    service: light.turn_on
+#
+#  - data: {}
+#    entity_id: light.garage_2
+#    service: light.turn_on
+#
+#
+#- id: '0000000000014'
+#  alias: 014 - Garagem, Luz 2, apaga com fechamento do portao
+#  description: ''
+#  trigger:
+#    platform: state
+#    entity_id: binary_sensor.portao_garagem_zigbee_contact
+#    to: 'off'
+#  condition: []
+#
+##  condition: or
+##  conditions:
+##    - after: sunset
+##      after_offset: '00:04:00'
+##      condition: sun
+##    - before: sunrise
+##      before_offset: '-00:08:00'
+##      condition: sun
+#  action:
+#  - data: {}
+#    entity_id: light.luz_escritorio
+#    service: light.turn_off
+#  - data: {}
+#    entity_id: light.garage_aux_light2_gate
+#    service: light.turn_off
+#
+#  - data: {}
+#    entity_id: light.garage_2
+#    service: light.turn_off
+#
+
+#---------------- Abertura e Fechamento de Porta
+#- id: '0000000000014'
+#  alias: 014 - Garagem, Luz 2, liga com abertura da porta
+#  description: ''
+#  trigger:
+#    platform: state
+#    entity_id: binary_sensor.hall02_door
+#    to: 'on'
+#
+#  condition: or
+#  conditions:
+#    - after: sunset
+#      after_offset: '00:04:00'
+#      condition: sun
+#    - before: sunrise
+#      before_offset: '-00:08:00'
+#      condition: sun
+#
+#  action:
+#  - data: {}
+#    entity_id: light.luz_garagem_2
+#    service: light.turn_on
+#
+#- id: '0000000000015'
+#  alias: Garagem, Luz 2, desliga após 2 segundo do fechamento da porta
+#  description: ''
+#  trigger:
+#    platform: state
+#    entity_id: binary_sensor.hall02_door
+#    to: 'off'
+#    for:
+#      seconds: 2
+#  condition: []
+#  action:
+#  - data: {}
+#    entity_id: light.luz_garagem_2
+#    service: light.turn_off
+#
+
+#========================================================================================
+# ____ _    ____ ____ _  _ ____
+# |__| |    |__| |__/ |\/| |___
+# |  | |___ |  | |  \ |  | |___
+
+#- id: '1000000000005'
+#  alias: Notifica Alarme DESARMADO
+#  trigger:
+#  - entity_id: switch.sotao01_tasmota5
+#    from: 'on'
+#    platform: state
+#    to: 'off'
+#  action:
+#  - service: telegram_bot.send_message
+#    data_template:
+#      target: -411043479
+#      message: ❎ Alarme DESARMADO!
+#  - service: notify.alexa_media
+#    data:
+#      target: media_player.echo_dot_sala_visitas
+#      message: Alarme Desarmado!
+#      data:
+#        type: tts
+#
+#- id: '1000000000006'
+#  alias: Notifica Alarme Armado
+#  trigger:
+#  - entity_id: switch.sotao01_tasmota5
+#    from: 'off'
+#    platform: state
+#    to: 'on'
+#  action:
+#  - service: telegram_bot.send_message
+#    data_template:
+#      target: -411043479
+#      message: ✅️ Alarme Armado
+#  - service: notify.alexa_media
+#    data:
+#      target: media_player.echo_dot_sala_visitas
+#      message: Alarme Armado!
+#      data:
+#        type: tts
+#
+#- id: '1000000000007'
+#  alias: Notifica Alarme DISPARADO
+#  trigger:
+#  - entity_id: switch.sotao01_tasmota6
+#    from: 'off'
+#    platform: state
+#    to: 'on'
+#  action:
+#  - service: telegram_bot.send_message
+#    data_template:
+#      target: -411043479
+#      message: 🚨 *ALARME DISPARADO!* 📣
+#  - service: media_player.volume_set
+#    data:
+#      entity_id: media_player.echo_dot_sala_visitas
+#      volume_level: 1.0
+#  - service: notify.alexa_media
+#    data:
+#      target: media_player.echo_dot_sala_visitas
+#      message: Alarme Disparado!
+#      data:
+#        type: tts
+#  - service: media_player.volume_set
+#    data:
+#      entity_id: media_player.echo_dot_sala_visitas
+#      volume_level: 0.5
+#
+#- id: '1000000000008'
+#  alias: Notifica Alarme Restaurado
+#  trigger:
+#  - entity_id: switch.sotao01_tasmota6
+#    from: 'on'
+#    platform: state
+#    to: 'off'
+#  action:
+#  - service: telegram_bot.send_message
+#    data_template:
+#      target: -411043479
+#      message: ☑️ Alarme Restaurado
+#  - service: notify.alexa_media
+#    data:
+#      target: media_player.echo_dot_sala_visitas
+#      message: Alarme Restaurado. Tudo nornal.
+#      data:
+#        type: tts
+#
+#- id: '1000000000001'
+#  description: ''
+#  alias: Telegram bot Ligar Alarme Desligado
+#  trigger:
+#    platform: event
+#    event_type: telegram_text
+#    event_data:
+#      text: Liga alarme
+#  condition:
+#  - condition: state
+#    entity_id: switch.sotao01_tasmota5
+#    state: 'off'
+#  action:
+#  - data: {}
+#    entity_id: switch.liga_desliga_do_alarme
+#    service: switch.turn_on
+#  - service: telegram_bot.send_message
+#    data_template:
+#      target: '{{ trigger.event.data.chat_id }}'
+#      message: 👍{{ trigger.event.data["from_first"] }}, mandei ligar...
+#
+#- id: '1000000000002'
+#  description: ''
+#  alias: Telegram bot Ligar Alarme ja Ligado
+#  trigger:
+#    platform: event
+#    event_type: telegram_text
+#    event_data:
+#      text: Liga alarme
+#  condition:
+#  - condition: state
+#    entity_id: switch.sotao01_tasmota5
+#    state: 'on'
+#  action:
+#  - service: telegram_bot.send_message
+#    data_template:
+#      target: '{{ trigger.event.data.chat_id }}'
+#      message: 😖 {{ trigger.event.data["from_first"] }}, o alarme ja estava ligado.
+#
+#- id: '1000000000003'
+#  alias: Telegram bot Desligar Alarme Ligado
+#  trigger:
+#  - event_data:
+#      text: Desliga alarme
+#    event_type: telegram_text
+#    platform: event
+#  condition:
+#  - condition: state
+#    entity_id: switch.sotao01_tasmota5
+#    state: 'on'
+#  action:
+#  - data: {}
+#    entity_id: switch.liga_desliga_do_alarme
+#    service: switch.turn_on
+#  - service: telegram_bot.send_message
+#    data_template:
+#      message: 👍 {{ trigger.event.data["from_first"] }}, mandei desligar...
+#      target: '{{ trigger.event.data.chat_id }}'
+#
+#- id: '1000000000004'
+#  alias: Telegram bot Desligar Alarme ja Desligado
+#  trigger:
+#  - event_data:
+#      text: Desliga alarme
+#    event_type: telegram_text
+#    platform: event
+#  condition:
+#  - condition: state
+#    entity_id: switch.sotao01_tasmota5
+#    state: 'off'
+#  action:
+#  - data: {}
+#    entity_id: switch.liga_desliga_do_alarme
+#    service: switch.turn_on
+#  - service: telegram_bot.send_message
+#    data_template:
+#      message: 😖 {{ trigger.event.data["from_first"] }}, o alarme ja estava desligado.
+#      target: '{{ trigger.event.data.chat_id }}'
+
+#------------------------ TESTE Automacao por Movimento ---------------------------------
+#- id: '9990000001003'
+#  alias: Turn on light when there is movement
+#  description: ''
+#  trigger:
+#    platform: state
+#    entity_id: binary_sensor.living02_motion
+#    to: 'on'
+#  condition: []
+#  action:
+#  - data: {}
+#    entity_id: light.sala_visita_luz_fundo
+#    service: light.turn_on
+#
+#- id: '9990000001004'
+#  alias: Turn off light XX minutes after last movement
+#  description: ''
+#  trigger:
+#    platform: state
+#    entity_id: binary_sensor.living02_motion
+#    to: 'off'
+##    for:
+##      minutes: 10
+#  condition: []
+#  action:
+#  - data: {}
+#    entity_id: light.sala_visita_luz_fundo
+#    service: light.turn_off
+
+#-------------------------- TESTE Automacao Sensor Luz ----------------------------------
+#- id: '9990000001005'
+#  alias: Living Light Sensor on
+#  description: ''
+#  trigger:
+#  - below: '30'
+#    entity_id: sensor.living02_bh1750_illuminance
+#    platform: numeric_state
+#  condition: []
+#  action:
+#  - data: {}
+#    entity_id: light.dark_living
+#    service: light.turn_on
+#  mode: single
+#
+#- id: '9990000001006'
+#  alias: Living Light Sensor off
+#  description: ''
+#  trigger:
+#  - above: '40'
+#    entity_id: sensor.living02_bh1750_illuminance
+#    platform: numeric_state
+#  condition: []
+#  action:
+#  - data: {}
+#    entity_id: light.dark_living
+#    service: light.turn_off
+#  mode: single
+###---------------------------------------------------------------------------

@@ -1,0 +1,342 @@
+#  ____        _ _         __  __           _            
+# / ___| _   _(_) |_ ___  |  \/  | __ _ ___| |_ ___ _ __ 
+# \___ \| | | | | __/ _ \ | |\/| |/ _` / __| __/ _ \ '__|
+#  ___) | |_| | | ||  __/ | |  | | (_| \__ \ ||  __/ |   
+# |____/ \__,_|_|\__\___| |_|  |_|\__,_|___/\__\___|_|   
+#                                                        
+#     _         _                        _   _                 
+#    / \  _   _| |_ ___  _ __ ___   __ _| |_(_) ___  _ __  ___ 
+#   / _ \| | | | __/ _ \| '_ ` _ \ / _` | __| |/ _ \| '_ \/ __|
+#  / ___ \ |_| | || (_) | | | | | | (_| | |_| | (_) | | | \__ \
+# /_/   \_\__,_|\__\___/|_| |_| |_|\__,_|\__|_|\___/|_| |_|___/
+#                                                              
+
+
+# http://www.network-science.de/ascii/  (standard)
+
+#----------------------------------------------------------------------
+
+# https://platform.openai.com/api-keys
+# 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
+
+#-------------------------------- 11111111111111111111 --------------------------------------
+
+
+- id: "1080000000199"
+- alias: teste sensor de cama com IA.
+
+  variables:
+    prompt: >-
+            Você é a Chiquinha, assistente da casa do casal Fernando e Luciana. Agora são {{ now ().hour }} horas e {{ now ().minute }} minutos.
+            A Luciana acabou de deitar.
+            Gere uma mensagem de vóz, para a Luciana, através da vóz da alexa, conforme essas intruções: Entre meio dia e entes das 19:00 deseje boa tarde e bom sono da beleza, e entre 19:00 e 5:00 da manha deseje boa noite e bons sonhos. Utilize essas instruções são para formar a mensagem, não as leia. Também informe as horas.
+            A mensagem deve ser educada, informal e bastante critativa, também pode ter um pouquinho de humor ou pode imitar alguma pessoa famosa.
+            Não diga que é voz da Alexa ou da Chiquinha. Não chame de Dona ou Senhora. Pode chamar de Lu se quizer.
+
+
+#{ now ().hour }} horas e {{ now ().minute }} minutos.
+
+  trigger:
+    - id: 'Teste com sensor de cama'
+      platform: state
+      entity_id: input_boolean.bed_lu
+      to: 'on' # "in_bed"
+
+#    - id: 'Teste com botao zigbee'
+#      platform: state
+#      entity_id: sensor.smart_button_action
+#      to: 'single'
+
+  condition:
+    - condition: time
+      after: '12:00:00'  # A automação só será executada depois do meio dia
+      before: '03:00:00'  # A automação só será executada antes das 3 da manhã
+    - condition: template
+      value_template: "{{ (as_timestamp(now()) - as_timestamp(states.automation.teste_sensor_de_cama_com_ia.attributes.last_triggered | default(0)) | int > 10800) }}"  # Verifica se a automação não foi acionada nas últimas 3 horas (true/false)
+
+  action:
+    - alias: Carrega Gemini IA Vision
+      service: google_generative_ai_conversation.generate_content
+      data:
+        prompt: "{{ prompt }}"
+      response_variable: agent
+
+    - alias: carrega helper com resposta da ia
+      service: input_text.set_value
+      data:
+      data:
+        entity_id: input_text.para_teste_de_ia
+        value: "{{ agent.text }}"
+#        value: "{{ prompt }}"
+
+#    - delay: '00:00:00' # Waits 00 seconds
+
+    - alias: notifica pela alexa
+      service: notify.alexa_media
+      data:
+        target:
+            - media_player.echoshow_escritorio
+            - media_player.echoshow_luciana
+        data:
+          type: tts #ou announce
+#        message: '{{ input_text.para_teste_de_ia }}'
+        message: '{{ agent.text }}'
+
+#  action:
+#    - service: notify.alexa_media
+#      data:
+#        target:
+#            - media_player.echoshow_escritorio
+#        data:
+#          type: tts
+#        message: '{{
+#          ["Boa noite Lu", "Durma bem Lu!", "Descanse bem, Lu!", "Bons sonhos Lu!"]
+#          | random
+#        }}'
+#    #    message: "Durma bem e sonhe com os anginhos."
+
+
+
+# --------------------------------------------- 22222222222 --------------------------------------
+
+# teste 
+- id: "1080000000099"
+- alias: suite_casal_99 - teste notifica lu ao deitar.
+  trigger:
+#    - platform: state
+#      entity_id: input_boolean.bed_lu
+#      to: 'on' # "in_bed"
+ #   for: "00:00:10"
+
+  condition:
+    condition: and
+    conditions:
+#      - condition: time
+#        after: "20:00:00"
+#      - condition: time
+#        before: "02:00:00"
+      - condition: template
+        value_template: "{{ states('sensor.date') != states('input_text.last_lie_in_bed_lu_notification_date') }}"
+
+  action:
+    - service: input_text.set_value
+      data:
+        entity_id: input_text.last_lie_in_bed_lu_notification_date  # atualiza o sensor que foi exacutada
+        value: "{{ states('sensor.date') }}"
+
+    - service: notify.alexa_media
+      data:
+        target:
+            - media_player.echoshow_escritorio
+        data:
+ #         media_content_type: custom
+  #        media_content_id: 'que horas são?'
+          type: tts #ou announce
+        message: '{{
+          ["Oi!!!", "Ola!!!", "Deitou!!", "Pôs-se na cama!"]
+          | random
+        }}'
+        
+#--------------------------------------------------------------------------------------------------
+
+- id: "1080000009050"
+- alias: suite_casal_50 - Notificação para Lu ao deitar na cama
+  trigger:
+#    - platform: state
+#      entity_id: input_boolean.bed_lu
+#      to: 'on'  # In bed'
+    
+  condition:
+    condition: and
+    conditions:
+      - condition: time
+        after: "20:00:00"
+      - condition: time
+        before: "02:00:00"
+      - condition: template
+        value_template: "{{ states('sensor.date') != states('input_text.last_lie_in_bed_lu_notification_date') }}"
+
+  action:
+    - service: input_text.set_value
+      data:
+        entity_id: input_text.last_lie_in_bed_lu_notification_date  # atualiza o sensor que foi exacutada
+        value: "{{ states('sensor.date') }}"
+        
+    - service: notify.alexa_media
+      data:
+        target:
+            - media_player.echoshow_luciana
+#            - media_player.echoshow_escritorio
+        data:
+          type: tts #ou announce
+        message: '{{
+          ["Boa noite Lu", "Durma bem Lu!", "Descanse bem, Lu!", "Bons sonhos Lu!"]
+          | random
+        }}'
+
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.echoshow_luciana
+#        entity_id: media_player.echoshow_escritorio
+      data:
+        media_content_type: custom
+        media_content_id: horas
+
+#    - service: notify.alexa_media
+#      data:
+#        target:
+#            - media_player.echoshow_luciana
+##            - media_player.echoshow_escritorio
+#        data:
+#          type: tts #ou announce
+#        message: "Durma bem e sonhe com os anginhos."
+
+
+#####################
+
+
+- id: "1080000009060"
+- alias: suite_casal_60 - Notificação para Lu ao levantar da cama
+  trigger:
+    - platform: state
+      entity_id: input_boolean.bed_lu
+      to: 'off' # Not in bed'
+        
+  condition:
+    condition: and
+    conditions:
+      - condition: time
+        after: "05:00:00"
+      - condition: time
+        before: "08:00:00"        
+      - condition: template
+        value_template: "{{ states('sensor.date') != states('input_text.last_get_up_lu_notification_date') }}"
+
+  action:
+    - service: input_text.set_value
+      data:
+        entity_id: input_text.last_get_up_lu_notification_date  # atualiza o sensor que foi exacutada
+        value: "{{ states('sensor.date') }}"
+        
+    - service: notify.alexa_media
+      data:
+
+        target:
+            - media_player.echoshow_luciana
+#            - media_player.echoshow_escritorio
+        data:
+          type: tts #ou announce
+        message: "Bom dia Lu"
+
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.echoshow_luciana
+#        entity_id: media_player.echoshow_escritorio
+      data:
+        media_content_type: custom
+        media_content_id: horas
+
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.echoshow_luciana
+#        entity_id: media_player.echoshow_escritorio
+      data:
+        media_content_type: custom
+        media_content_id: previsao do tempo agora
+        
+#Que o seu dia seja repleto de alegria, conquistas e momentos especiais. Aproveite cada instante ao máximo e lembre-se de sorrir sempre. Tenha um dia maravilhoso!"
+
+#--------------------------------------------------------------------------------------------------
+
+# ----Automacoes para colocar histerese na deteccao de deitar e levantar.
+
+- id: '1080000009010'
+- alias: suite_casal_10 - bed_lu_detected
+  description: 'Automação para colocar histerese ao deitar'
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.ts0203_01_bed_lu_contact
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.bed_lu
+  mode: single
+
+- id: '1080000009020'
+- alias: suite_casal_20 - bed_lu_clear
+  description: 'Automação para colocar histerese ao levantar'
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.ts0203_01_bed_lu_contact
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  condition: []
+  action:
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.bed_lu
+  mode: single
+
+
+- id: '1080000009030'
+- alias: suite_casal_30 - bed_fe_detected
+  description: 'Automação para colocar histerese ao deitar'
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.ts0203_02_bed_fe_contact
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.bed_fe
+  mode: single
+
+- id: '1080000009040'
+- alias: suite_casal_40 - bed_fe_clear
+  description: 'Automação para colocar histerese ao levantar'
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.ts0203_02_bed_fe_contact
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  condition: []
+  action:
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.bed_fe
+  mode: single
+
+  
+
+
+
+

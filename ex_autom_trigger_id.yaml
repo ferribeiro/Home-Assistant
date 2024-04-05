@@ -1,0 +1,66 @@
+
+#  _____ _                      ____ _                          _____                          
+# |  ___| | __ _  __ _ ___     / ___| | __ _ _ __ ___     ___  | ____|___  ___ _   _ _ __ ___  
+# | |_  | |/ _` |/ _` / __|   | |   | |/ _` | '__/ _ \   / _ \ |  _| / __|/ __| | | | '__/ _ \ 
+# |  _| | | (_| | (_| \__ \   | |___| | (_| | | | (_) | |  __/ | |___\__ \ (__| |_| | | | (_) |
+# |_|   |_|\__,_|\__, |___/    \____|_|\__,_|_|  \___/   \___| |_____|___/\___|\__,_|_|  \___/ 
+#                |___/                                                                         
+
+
+# http://www.network-science.de/ascii/  (standard)
+
+#----------------------------------------------------------------------
+
+#    - id: 'Teste com botao zigbee'
+#      platform: state
+#      entity_id: sensor.smart_button_action
+#      to: 'single'
+
+- id: 'exemplo_de_automaçao_com_trigger_id'
+  alias: _teste trigger ID
+  description: trigger id na bancada do escritorio
+  
+  trigger:
+  
+  - id: 'btn_single'
+    platform: state
+    entity_id: sensor.smart_button_action
+    to: 'single'
+    
+  - id: 'btn_double'
+    platform: state
+    entity_id: sensor.smart_button_action
+    to: 'double'
+    
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - btn_single
+      sequence:
+      - service: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.office01_out_13_bancada
+
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - btn_double
+      sequence:
+      - service: light.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.office01_out_13_bancada
+     
+  mode: single
+  
+#    action:
+#    service: light.toggle
+#    entity_id:
+#      -  light.office01_out_13_bancada

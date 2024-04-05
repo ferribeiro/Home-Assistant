@@ -1,0 +1,39 @@
+#
+#     _         _                      _____                     _                      
+#    / \  _   _| |_ ___  _ __ ___     | ____|_  ____ _ _   _ ___| |_ ___  _ __ ___  ___ 
+#   / _ \| | | | __/ _ \| '_ ` _ \    |  _| \ \/ / _` | | | / __| __/ _ \| '__/ _ \/ __|
+#  / ___ \ |_| | || (_) | | | | | |_  | |___ >  < (_| | |_| \__ \ || (_) | | |  __/\__ \
+# /_/   \_\__,_|\__\___/|_| |_| |_(_) |_____/_/\_\__,_|\__,_|___/\__\___/|_|  \___||___/
+# 
+# 
+# http://www.network-science.de/ascii/  (standard)
+#
+#----------------------------------------------------------------------
+
+
+- id: "6000000000001"
+  alias: "6001 - Desliga Exaustor mezanino após tempo definido"
+  trigger:
+    - platform: state
+      entity_id: fan.suite_master1_mezzanine_fan
+      to: "on"
+  action:
+    - delay:
+        minutes: "{{ states.input_number.define_tempo_exaustor_mezanino.state }}"
+    - service: fan.turn_off
+      entity_id: fan.suite_master1_mezzanine_fan
+
+
+
+
+- id: "6000000000002"
+  alias: "6002 - Desliga Exaustor escritorio após tempo definido"
+  trigger:
+    - platform: state
+      entity_id: fan.office01_fan
+      to: "on"
+  action:
+    - delay:
+        minutes: "{{ states.sensor.runtime_exaustor_escritorio.state }}"
+    - service: fan.turn_off
+      entity_id: fan.office01_fan

@@ -1,0 +1,203 @@
+#                _                        _   _
+#     /\        | |                      | | (_)
+#    /  \  _   _| |_ ___  _ __ ___   __ _| |_ _  ___  _ __  ___
+#   / /\ \| | | | __/ _ \| '_ ` _ \ / _` | __| |/ _ \| '_ \/ __|
+#  / ____ \ |_| | || (_) | | | | | | (_| | |_| | (_) | | | \__ \
+# /_/    \_\__,_|\__\___/|_| |_| |_|\__,_|\__|_|\___/|_| |_|___/
+#
+###################### IRRIGACAO ###############################
+
+- id: "5000000000000"
+- alias: "Sequência de Liga-Desliga Irrigação"
+  trigger:
+    platform: state
+    entity_id: input_boolean.liga_irrigacao
+    to: "on"
+  action:
+    - service: switch.turn_on
+      data_template:
+        entity_id: switch.sprk_parede_vermelha_frente_zgb_l2
+
+
+- id: "5000000000001"
+- alias: "Ligar aspersor 2"
+  trigger:
+    platform: state
+    entity_id: switch.sprk_parede_vermelha_frente_zgb_l2
+    to: "off"
+  condition:
+    condition: state
+    entity_id: input_boolean.liga_irrigacao
+    state: "on"
+  action:
+    - service: switch.turn_on
+      data_template:
+        entity_id: switch.sprk_gramado_central_frente_zgb_l1
+
+
+- id: "5000000000002"
+- alias: "Ligar aspersor 3"
+  trigger:
+    platform: state
+    entity_id: switch.sprk_gramado_central_frente_zgb_l1
+    to: "off"
+  condition:
+    condition: state
+    entity_id: input_boolean.liga_irrigacao
+    state: "on"
+  action:
+    - service: switch.turn_on
+      data_template:
+        entity_id: switch.spk_01_02_zgb_bckyrd_l1
+
+
+- id: "5000000000003"
+- alias: "Ligar aspersor 4"
+  trigger:
+    platform: state
+    entity_id: switch.spk_01_02_zgb_bckyrd_l1
+    to: "off"
+  condition:
+    condition: state
+    entity_id: input_boolean.liga_irrigacao
+    state: "on"
+  action:
+    - service: switch.turn_on
+      data_template:
+        entity_id: switch.spk_01_02_zgb_bckyrd_l2
+
+
+- id: "5000000000004"
+- alias: "Ligar aspersor 5"
+  trigger:
+    platform: state
+    entity_id: switch.spk_01_02_zgb_bckyrd_l2
+    to: "off"
+  condition:
+    condition: state
+    entity_id: input_boolean.liga_irrigacao
+    state: "on"
+  action:
+    - service: switch.turn_on
+      data_template:
+        entity_id: switch.spk_03_04_zgb_bckyrd_l1
+
+
+- id: "5000000000005"
+- alias: "Desligar a sequência quando o quinto aspersor for desligado"
+  trigger:
+    platform: state
+    entity_id: switch.spk_03_04_zgb_bckyrd_l1
+    to: "off"
+  condition:
+    condition: state
+    entity_id: input_boolean.liga_irrigacao
+    state: "on"
+  action:
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.liga_irrigacao
+
+###########################################
+
+- id: "5000000000006"
+  alias: "Desliga irrigação 01 por tempo definido"
+  trigger:
+    - platform: state
+      entity_id: switch.sprk_parede_vermelha_frente_zgb_l2
+      to: "on"
+      
+  action:
+    - delay:
+        minutes: "{{ states.input_number.sprinkler_runtime_01.state }}"
+#    - service: switch.turn_off
+#      entity_id: switch.sprk_parede_vermelha_frente_zgb_l2
+    - service: retry.call
+      data:
+        service: homeassistant.turn_off
+        retries: 10
+        expected_state: "off"
+      target:
+        entity_id: switch.sprk_parede_vermelha_frente_zgb_l2
+
+
+- id: "5000000000007"
+  alias: "Desliga irrigação 02 por tempo definido"
+  trigger:
+    - platform: state
+      entity_id: switch.sprk_gramado_central_frente_zgb_l1
+      to: "on"
+      
+  action:
+    - delay:
+        minutes: "{{ states.input_number.sprinkler_runtime_02.state }}"
+#    - service: switch.turn_off
+#      entity_id: switch.sprk_gramado_central_frente_zgb_l1
+    - service: retry.call
+      data:
+        service: homeassistant.turn_off
+        retries: 10
+        expected_state: "off"
+      target:
+        entity_id: switch.sprk_gramado_central_frente_zgb_l1
+
+
+- id: "5000000000008"
+  alias: "Desliga irrigação 03 por tempo definido"
+  trigger:
+    - platform: state
+      entity_id: switch.spk_01_02_zgb_bckyrd_l1
+      to: "on"
+
+  action:
+    - delay:
+        minutes: "{{ states.input_number.sprinkler_runtime_03.state }}"
+#    - service: switch.turn_off
+#      entity_id: switch.spk_01_02_zgb_bckyrd_l1
+    - service: retry.call
+      data:
+        service: homeassistant.turn_off
+        retries: 10
+        expected_state: "off"
+      target:
+        entity_id: switch.spk_01_02_zgb_bckyrd_l1
+
+
+- id: "5000000000009"
+  alias: "Desliga irrigação 04 por tempo definido"
+  trigger:
+    - platform: state
+      entity_id: switch.spk_01_02_zgb_bckyrd_l2
+      to: "on"
+
+  action:
+    - delay:
+        minutes: "{{ states.input_number.sprinkler_runtime_04.state }}"
+#    - service: switch.turn_off
+#      entity_id: switch.spk_01_02_zgb_bckyrd_l2
+    - service: retry.call
+      data:
+        service: homeassistant.turn_off
+        retries: 10
+        expected_state: "off"
+      target:
+        entity_id: switch.spk_01_02_zgb_bckyrd_l2
+
+
+- id: "50000000000010"
+  alias: "Desliga irrigação 05 por tempo definido"
+  trigger:
+    - platform: state
+      entity_id: switch.spk_03_04_zgb_bckyrd_l1
+      to: "on"
+  action:
+    - delay:
+        minutes: "{{ states.input_number.sprinkler_runtime_05.state }}"
+#    - service: switch.turn_off
+#      entity_id: switch.spk_03_04_zgb_bckyrd_l1
+    - service: retry.call
+      data:
+        service: homeassistant.turn_off
+        retries: 10
+        expected_state: "off"
+      target:
+        entity_id: switch.spk_03_04_zgb_bckyrd_l1

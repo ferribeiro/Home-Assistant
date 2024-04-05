@@ -8,325 +8,554 @@
 
 # http://www.network-science.de/ascii/  (standard)
 
+#----------------------------------------------------------------------
+
+# https://platform.openai.com/api-keys
+# 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
+
+# Google Gemini
+# API fer.ribeiro
+# AIzaSyATw_jdda2UiOO4VnDS5NCkXv7fnUM0KdE
+
+# http://www.network-science.de/ascii/
 
 
-- id: '9999000009010'
-  alias: 9010 - cozinha luz auto acende BLE
-  description: ''
+
+- id: AI_0021
+  alias: '0021-teste de helper'
+  description: ""
+  variables:
+    prompt: >-
+      Horas {{ now ().hour }} horas e {{ now ().minute }} minutos e {{ now ().second }} segundos.
   trigger:
-  - platform: state
-    entity_id: binary_sensor.hlk_ld2410_c467_occupancy
-    to: 'on'
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 0
+#    - id: 'Teste com botao zigbee'
+#      platform: state
+#      entity_id: sensor.smart_button_action
+#      to: 'single'
   action:
-    - service: light.turn_on
-      entity_id:
-      - light.luz_cozinha_1
-      - light.luz_cozinha_2
-   #   - light.light_hall_garage
-        
-        
-- id: '9999000009020'
-  alias: 9020 - cozinha Apagar Luz com Sensor BLE
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: binary_sensor.hlk_ld2410_c467_occupancy
-    to: 'off'
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 10
-  - platform: state
-    entity_id: input_boolean.modo_visitas
-    to: 'off'
-      
-  condition:
-    - condition: state
-      entity_id: input_boolean.modo_visitas
-      state: "off"  # Modo visitas Desligado
-    - condition: state
-      entity_id: binary_sensor.hlk_ld2410_c467_occupancy
-      state: "off"  # Sem presença
+    - alias: carrega helper com resposta da ia
+      service: input_text.set_value
+      data:
+        entity_id: input_text.para_teste_de_ia
+        value: "{{ prompt }}"
+
+
+
+
+- id: AI_002
+  alias: '002-teste de Descreve quem tocou o interfone'
+  description: "Utiliza a IA Gemini para descreve a imagem capturada pelas cameras da frente"
   
-  action:
-    - service: light.turn_off
-      entity_id:
-      - light.luz_cozinha_1
-      - light.luz_cozinha_2
-   #   - light.light_hall_garage
+  variables:
+    entrada: >-
+      Agora são {{ now ().hour }} horas e {{ now ().minute }} minutos. Tem alguém tocando o intefone na frente da casa. Analise a imagem da camera do portão da frente da minha casa. Começe informando que horas são sem mencionar os segundos, então descreva em o que consegue ver na imagem com detalhes mas de forma sucinta. Não minta, não invente não adicione informações que não esteja na imagem. Se você identificar algum risco de segurança, avise-me no final da mensagem. Não faça uma descrição longa e não nao conte historia. É uma imagem estática não um filme. Não mencionar a árvore e céu ao fundo. Não da pra ver a garagem nem o portão. Não Mencione mochila nas costas.
 
+    texto: >-
+      Agora são {{ now ().hour }} horas e {{ now ().minute }} minutos. Tem alguém tocando o intefone na frente da casa. Analise a imagem da camera do portão da frente da minha casa. Começe informando que horas são sem mencionar os segundos, então descreva em o que consegue ver na imagem com detalhes mas de forma sucinta.
+      
+      
+#Horas {{ now ().hour }} horas e {{ now ().minute }} minutos e {{ now ().second }} segundos.
 
-################################ SENSORES DE CAMA QUARTO #########################
-
-
-- id: '9999000009030'
-  alias: 9030 - bed_lu_detected
-  description: ''
   trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.ts0203_01_bed_lu
-    from: 'off'
-    to: 'on'
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 2
-  condition: []
-  action:
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.bed_lu
-  mode: single
-
-
-- id: '9999000009040'
-  alias: 9040 - bed_lu_clear
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.ts0203_01_bed_lu
-    from: 'on'
-    to: 'off'
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 2
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.bed_lu
-  mode: single
-
-
-- id: '9999000009050'
-  alias: 9050 - bed_fe_detected
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.ts0203_02_bed_fe
-    from: 'off'
-    to: 'on'
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 2
-  condition: []
-  action:
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.bed_fe
-  mode: single
-
-
-- id: '9999000009060'
-  alias: 9060 - bed_fe_clear
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.ts0203_02_bed_fe
-    from: 'on'
-    to: 'off'
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 2
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.bed_fe
-  mode: single
-
-
-- id: '9999000009070'
-  alias: 9070 - chair_3_detected
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.ts0203_05_contact
-    from: 'off'
-    to: 'on'
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 2
-  condition: []
-  action:
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.chair_3
-  mode: single
-
-
-- id: '9999000009080'
-  alias: 9080 - chair_3_clear
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.ts0203_05_contact
-    from: 'on'
-    to: 'off'
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 2
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.chair_3
-  mode: single
-
-
-###################################################################
-
-- id: "9999000009090"
-- alias: 9090 - Notificação para Lu ao deitar na cama
-  trigger:
-    - platform: state
-      entity_id: sensor.lu_na_cama
-      to: 'not_in_bed'
-    
-  condition:
-    condition: and
-    conditions:
-      - condition: time
-        after: "20:00:00"
-      - condition: time
-        before: "02:00:00"
-      - condition: template
-        value_template: "{{ states('sensor.date') != states('sensor.last_lie_in_bed_lu_notification_date') }}"
+#    - platform: state
+#      entity_id: sensor.smart_button_action
+#      to: 'double'
 
   action:
-    - service: input_text.set_value
+    - service: google_generative_ai_conversation.generate_content
       data:
-        entity_id: input_text.last_lie_in_bed_lu_notification_date  # atualiza o sensor que foi exacutada
-        value: "{{ states('sensor.date') }}"
-        
-    - service: notify.alexa_media
-      data:
-        target:
-            - media_player.echoshow_luciana
-        data:
-          type: tts #ou announce
-        message: "Boa noite Lu. Durma bem e sonhe com os anginhos."
+        prompt: "{{ entrada }}"
+        image_filename: /config/www/images/cameras/camera_interfone.jpg
+        image_filename: /config/www/images/cameras/camera_frente1.jpg
+        image_filename: /config/www/images/cameras/camera_frente2.jpg
+      response_variable: saida
 
-
-#####################
-
-
-- id: "9999000009100"
-- alias: 9100 - Notificação para Lu ao levantar da cama
-  trigger:
-    - platform: state
-      entity_id: sensor.lu_na_cama
-      to: 'in_bed'
-        
-  condition:
-    condition: and
-    conditions:
-      - condition: time
-        after: "05:00:00"
-      - condition: time
-        before: "08:00:00"        
-      - condition: template
-        value_template: "{{ states('sensor.date') != states('sensor.last_get_up_lu_notification_date') }}"
-
-  action:
-    - service: input_text.set_value
-      data:
-        entity_id: input_text.last_get_up_lu_notification_date  # atualiza o sensor que foi exacutada
-        value: "{{ states('sensor.date') }}"
-        
-    - service: notify.alexa_media
-      data:
-        target:
-            - media_player.echoshow_luciana
-        data:
-          type: tts #ou announce
-        message: "Bom dia Lu! Que o seu dia seja repleto de alegria, conquistas e momentos especiais. Aproveite cada instante ao máximo e lembre-se de sorrir sempre. Tenha um dia maravilhoso!"
-
-        
-
-- id: "9999000009110"
-- alias: 9110 - teste de comandos
-  trigger:
-    - platform: state
-      entity_id: sensor.lu_na_cama
-      to: "in_bed"
- #   for: "00:00:10"
-        
- # condition:
- #   condition: and
-  #  conditions:
- #     - condition: time
-   #     after: "05:00:00"
-    #  - condition: time
- #       before: "08:00:00"        
-
-  action:
     - service: notify.alexa_media
       data:
         target:
             - media_player.echoshow_escritorio
         data:
- #         media_content_type: custom
-  #        media_content_id: 'que horas são?'
-          type: tts #ou announce
-        message: Oi!!!
-        
-        
-################################ SENSORES DE ASSENTO HT #########################
+          type: tts
+        message: '{{ saida.text }}'
 
-- id: "9999000009120"
-- alias: 9120 - Notificação de Sentar na poltrona 3 do HT
+    - service: input_text.set_value
+      data:
+        entity_id: input_text.para_teste_de_ia
+        value: "{{ texto }}"
+
+
+# - id: AI_1706481343505
+#   alias: ia detalha camera com ia
+#   description: ''
+#   use_blueprint:
+#     path: AI-powered home awareness/sentinelsight.yaml
+#     input:
+#       person_device_tracker: person.fernando
+#       motion_sensor: binary_sensor.sliding_door_sensor
+#       camera: camera.ds_7216huhi_k21620180222ccwr803764620wcvu_101
+#       todo_list: todo.lista
+#       notify_service_1: notify.s20_fernando
+#       image_count: 4
+
+# - id: M_APP_1706481343505
+#   alias: "tst notify mobile app"
+#   description: ""
+# 
+#   trigger:
+#     - platform: state
+#       entity_id: input_boolean.chuva_det_tst
+#       to: 'on'  # O sensor está fechado quando está chovendo
+# 
+#   action:
+# #    - service: media_player.turn_on
+# #      entity_id: media_player.seu_reprodutor_de_midia
+# #      data:
+# 
+#     - service: notify.alexa_media
+#       data:
+#         target:
+#             - media_player.echoshow_escritorio
+#         data:
+#           type: tts #ou announce
+#         message: "notify mobile app"
+# 
+#     - service: notify.mobile_app_s20_do_fernando
+#       data:
+#         message: "Notificação teste!"
+#         data:
+#           actions:
+#             - action: "ALARM" # The key you are sending for the event
+#               title: "Sound Alarm" # The button title
+#             - action: "URI" # Must be set to URI if you plan to use a URI
+#               title: "Open Url"
+#               uri: "https://google.com" # URL to open when action is selected, can also be a lovelace view/dashboard      
+# 
+
+- id: AI_1706481343505
+  alias: "ia detalha camera original"
+  description: ""
+  
+  variables:
+    notify_number: one
+    prompt: >-
+      Describe what happened in the following sequence of images from my security
+      camera.
+  
+      Dont lie or add any aditional information that you cant see in the images,
+      my life depends on it.
+  
+      If you identify any security risk, let me know at the end of every message.
+    image_count: 4
+    delay: "0"
+    camera: camera.ds_7216huhi_k21620180222ccwr803764620wcvu_101
+    todo_list: todo.lista
+    motion_sensor: binary_sensor.sliding_door_sensor
+
   trigger:
     - platform: state
-      entity_id: binary_sensor.ts0203_05_contact
+      entity_id: binary_sensor.sliding_door_sensor
+      from: "on"
       to: "off"
-      for: "00:00:10"
+      id: motion_sensor
+      
+#    - platform: state
+#      entity_id: person.fernando
+#      to: home
+#      id: device_tracker_home
+      
+#    - id: 'trigger_tst_camera_ia'
+#      platform: state
+#      entity_id: sensor.smart_button_action
+#      to: 'single'
 
   action:
-    - service: notify.alexa_media
+    - alias: Fetch Snapshots Names
+      response_variable: todo
+      service: todo.get_items
+      target:
+        entity_id: todo.lista
       data:
-        target:
-            - media_player.echodot_pia
-        data:
-          type: tts #ou announce
-        message: "Sentou!"
+        status: needs_action
+    - variables:
+        snapshots_list: "{{ todo[todo_list]['items'] | map(attribute='summary') | list  }}"
+        number_snapshots: "{{ snapshots_list |length }}"
 
-- id: "9999000003003"
-- alias: Notificação de Levantar da poltrona 3 do HT
+    - choose:
+        - alias: Capture snapshots
+          conditions:
+            - condition: trigger
+              id: motion_sensor
+#            - condition: state
+#              entity_id: person.fernando
+#              state: not_home
+          sequence:
+            - delay: "{{ delay }}"
+            - variables:
+                video_snapshot_create_file_path: >-
+                  /tmp/video_snapshot_{{ states[camera].object_id }}_{{
+                  now().strftime('%M%S') }}.mp4
+            - parallel:
+                - service: camera.record
+                  data:
+                    duration: "{{ image_count * 2 }}"
+                    entity_id: camera.ds_7216huhi_k21620180222ccwr803764620wcvu_101
+                    filename: "{{ video_snapshot_create_file_path }}"
+                - repeat:
+                    count: "{{ image_count }}"
+                    sequence:
+                      - variables:
+                          snapshot_create_file_path: >-
+                            /tmp/snapshot_{{ states[camera].object_id }}_{{
+                            now().strftime('%M%S') }}.jpg
+                      - service: camera.snapshot
+                        entity_id: camera.ds_7216huhi_k21620180222ccwr803764620wcvu_101
+                        data:
+                          filename: "{{ snapshot_create_file_path }}"
+                      - service: todo.add_item
+                        data:
+                          entity_id: todo.lista
+                          item: "{{ snapshot_create_file_path }}"
+                      - delay: 1
+
+            - alias: Fetch Snapshots Names
+              response_variable: todo
+              service: todo.get_items
+              target:
+                entity_id: todo.lista
+              data:
+                status: needs_action
+            - variables:
+                snapshots_list2: >-
+                  {{ todo[todo_list]['items'] | map(attribute='summary') | list 
+                  }}
+
+            - alias: Gemini IA Vision
+              service: google_generative_ai_conversation.generate_content
+              data:
+                prompt: "{{ prompt }}"
+                image_filename: |-
+                  {%- if todo.items %}
+                    {{ snapshots_list2 }}
+                  {%- endif %}
+              response_variable: agent
+
+            - alias: Send notification
+              service: notify.s20_fernando
+              data:
+                title: "{{ now().strftime('%A') }} Security Overview"
+                message: "{{ agent.text }}"
+
+            - alias: Send video
+              service: notify.s20_fernando
+              data:
+                title: Video Recording
+                message: ""
+                data:
+                  video:
+                    file: "{{ video_snapshot_create_file_path }}"
+
+            - repeat:
+                for_each: "{{ snapshots_list2 }}"
+                sequence:
+                  - service: todo.remove_item
+                    target:
+                      entity_id: todo.lista
+                    data:
+                      item: "{{ repeat.item }}"
+  mode: queued
+
+# -----------------------------------------------------------------------------
+      
+- id: AI_1706479344847
+  alias: ia interfone com ia
+  description: ''
+  use_blueprint:
+    path: AI-powered home awareness/sentinelsight.yaml
+    input:
+      person_device_tracker: person.fernando
+      motion_sensor: binary_sensor.ds_7216huhi_k21620180222ccwr803764620wcvu_18_motiondetection
+      camera: camera.ds_7216huhi_k21620180222ccwr803764620wcvu_101
+      todo_list: todo.lista
+      notify_service_1: notify.txt
+      image_count: 5
+      
+# -----------------------------------------------------------------------------
+      
+- id: '1706482022335'
+  alias: IA_camera
+  description: ''
+  use_blueprint:
+    path: AI-powered home awareness/sentinelsight.yaml
+    input:
+      person_device_tracker: person.fernando
+      motion_sensor: binary_sensor.sliding_door_sensor
+      camera: camera.ds_7216huhi_k21620180222ccwr803764620wcvu_101
+      todo_list: todo.lista
+      notify_service_1: notify.fernando
+      image_count: 3
+
+- id: '1706475238576'
+  alias: Conversation agent Agenda Notification PT-BR
+  description: ''
+  use_blueprint:
+    path: ConversationAgentAgendaNotification/notify_agent_agenda.yaml
+    input:
+      conversation_agent: 4c789b9f190721ff5c5a04934d3c0b4e
+      notify_target: media_player.echoshow_escritorio
+      weather_entity: weather.openweathermap
+      zone_entity: zone.home
+      prompt: 'Por favor, gere um texto para uma notificação que será enviada aos
+        usuários por meio do smartphone, com informações úteis. 
+        Você é um agente pessoal prestativo que gera textos para o usuário:
+        Suas respostas são úteis, amigáveis, calorosas e perspicazes.
+        Suas respostas não são técnicas e não incluem detalhes internos do Home Assistant,
+        como entidades nas respostas.
+        Suas mensagens ajudam o usuário a se preparar para o dia, por exemplo:
+        Observar condições climáticas incomuns para a localização e época do ano (mas
+        sem detalhes mundanos como "0% de chance de precipitação").
+
+        Quanto tempo falta para a primeira reunião.
+
+        Qualquer coisa que possa ser especial ou única, como celebrar um aniversário.'
+      notify_service: notify.alexa_media
+      calendar_entity: calendar.calendario_local
+
+
+# =================================================================================================================
+
+################################# DVR ##################################
+
+- id: "9999193269263"
+  alias: Monitor DVR
   trigger:
-    - platform: state
-      entity_id: binary_sensor.ts0203_05_contact
+    - entity_id: binary_sensor.dvr
+      platform: state
       to: "on"
-      for: "00:00:10"
-
+  condition: []
   action:
     - service: notify.alexa_media
       data:
-        target:
-            - media_player.echodot_pia
+        target: media_player.todas_as_alexas
+        #      message: <amazon:emotion name="excited" intensity="medium">Resposta certa, parabéns!<amazon:emotion>
+        message: O dvr esta fora do ar!
         data:
-          type: tts #ou announce
-        message: "Levantou!"
+          type: tts
 
+- id: "9999193269264"
+  alias: Monitor Porteiro
+  trigger:
+    - entity_id: binary_sensor.porteiro
+      platform: state
+      to: "on"
+  condition: []
+  action:
+    - service: notify.alexa_media
+      data:
+        target: media_player.todas_as_alexas
+        #      message: <amazon:emotion name="excited" intensity="medium">Resposta certa, parabéns!<amazon:emotion>
+        message: O Porteiro esta fora do ar!
+        data:
+          type: tts
+
+# =================================================================================================================
+
+# ____ ____ _  _ ___ ____ ____    ___  ____ ____    _  _ ____ ____ ____ ____
+# |___ |  | |\ |  |  |___ [__     |  \ |  | [__     |  | |__| [__  |  | [__
+# |    |__| | \|  |  |___ ___]    |__/ |__| ___]     \/  |  | ___] |__| ___]
+
+- id: "9999000001001"
+  alias: Fonte dos vasos, liga as 9:00 se a Luciana estiver em casa
+  description: ""
+  trigger:
+    - at: 09:00
+      platform: time
+  condition:
+    - condition: zone
+      entity_id: device_tracker.luciana_a_n_r
+      zone: zone.home
+  action:
+    - data: {}
+      entity_id: switch.bomba_dos_vasos_jardim_lateral
+      service: switch.turn_on
+
+- id: "9999000001002"
+  alias: Fonte dos vasos, desliga as 21:00
+  description: ""
+  trigger:
+    - at: 021:00
+      platform: time
+  action:
+    - data: {}
+      entity_id: switch.bomba_dos_vasos_jardim_lateral
+      service: switch.turn_off
+
+- id: "9999000001003"
+  alias: Fonte dos vasos, desliga se a Luciana sair de casa
+  description: ""
+  trigger:
+    platform: state
+    entity_id: device_tracker.luciana_a_n_r
+    from: home
+    to: not_home
+  condition: []
+  action:
+    - data: {}
+      entity_id: switch.bomba_dos_vasos_jardim_lateral
+      service: switch.turn_off
+
+- id: "9999000001004"
+  alias: Fonte dos vasos, liga se a Luciana voltar de casa entre 09:00 e 21:00.
+  description: ""
+  trigger:
+    - entity_id: device_tracker.luciana_a_n_r
+      from: not_home
+      platform: state
+      to: home
+  condition:
+    - after: 09:00
+      before: 021:00
+      condition: time
+  action:
+    - data: {}
+      entity_id: switch.bomba_dos_vasos_jardim_lateral
+      service: switch.turn_on
+
+#========================================================================================
+
+# ___ ____ _    ____ ____ ____ ____ _  _
+#  |  |___ |    |___ | __ |__/ |__| |\/|
+#  |  |___ |___ |___ |__] |  \ |  | |  |
+
+- id: "9999000000091"
+  alias: Telegram bot, Responde ao Oi
+  trigger:
+    platform: event
+    event_type: telegram_text
+    event_data:
+      text: Oi
+  action:
+    - service: telegram_bot.send_message
+      data_template:
+        target: "{{ trigger.event.data.chat_id }}"
+        message: Olá, {{ trigger.event.data["from_first"] }}! Como vai? Tudo bem?
+
+- id: "9999000000092"
+  alias: Telegram bot, Acende mezanino
+  trigger:
+    platform: event
+    event_type: telegram_text
+    event_data:
+      text: Acende mezanino
+  action:
+    - data: {}
+      entity_id: light.mezzanine01_light1
+      service: light.turn_on
+    - data: {}
+      entity_id: light.mezzanine01_light2
+      service: light.turn_on
+    - data: {}
+      entity_id: light.mezzanine01_light3
+      service: light.turn_on
+    - service: telegram_bot.send_message
+      data_template:
+        target: "{{ trigger.event.data.chat_id }}"
+        message: Acendi todas!
+
+- id: "9999000000093"
+  alias: Telegram bot, Apaga mezanino
+  trigger:
+    platform: event
+    event_type: telegram_text
+    event_data:
+      text: Apaga mezanino
+  action:
+    - data: {}
+      entity_id: light.mezzanine01_light1
+      service: light.turn_off
+    - data: {}
+      entity_id: light.mezzanine01_light2
+      service: light.turn_off
+    - data: {}
+      entity_id: light.mezzanine01_light3
+    - service: telegram_bot.send_message
+      data_template:
+        target: "{{ trigger.event.data.chat_id }}"
+        message: Apaguei tudo!
+
+# _  _ ____ _  _ _ ___ ____ ____    _ _  _ ___ ____ ____ _  _ ____ ___
+# |\/| |  | |\ | |  |  |  | |__/    | |\ |  |  |___ |__/ |\ | |___  |
+# |  | |__| | \| |  |  |__| |  \    | | \|  |  |___ |  \ | \| |___  |
+
+- id: "000000000004"
+  alias: 0004 - Internet lenta
+  initial_state: true
+  trigger:
+    - platform: template
+      value_template: "{{ states('sensor.speedtest_download')|float < 10 }}"
+  action:
+    - service: notify.alexa_media
+      data:
+        target: media_player.echoshow_escritorio
+        #      message: <amazon:emotion name="excited" intensity="medium">Resposta certa, parabéns!<amazon:emotion>
+        message: A internet está lenta!
+        data:
+          type: tts
+    - service: telegram_bot.send_message
+      data_template:
+        target: !secret tel_chat_id_fe
+        message: Internet Lenta!
+
+
+# ----------------------------------------------------------------------------------------------
+
+
+
+#- id: '9999000009930'
+#  alias: 9930 - cozinha luz auto acende BLE
+#  description: ''
+#  trigger:
+#  - platform: state
+#    entity_id: binary_sensor.hlk_ld2410_c467_occupancy
+#    to: 'on'
+#    for:
+#      hours: 0
+#      minutes: 0
+#      seconds: 0
+#  action:
+#    - service: light.turn_on
+#      entity_id:
+#      - light.luz_cozinha_1
+#      - light.luz_cozinha_2
+#   #   - light.light_hall_garage
+        
+        
+#- id: '9999000009920'
+#  alias: 9920 - cozinha Apagar Luz com Sensor BLE
+#  description: ''
+#  trigger:
+#  - platform: state
+#    entity_id: binary_sensor.hlk_ld2410_c467_occupancy
+#    to: 'off'
+#    for:
+#      hours: 0
+#      minutes: 0
+#      seconds: 10
+#  - platform: state
+#    entity_id: input_boolean.modo_visitas
+#    to: 'off'
+#      
+#  condition:
+#    - condition: state
+#      entity_id: input_boolean.modo_visitas
+#      state: "off"  # Modo visitas Desligado
+#    - condition: state
+#      entity_id: binary_sensor.hlk_ld2410_c467_occupancy
+#      state: "off"  # Sem presença
+#  
+#  action:
+#    - service: light.turn_off
+#      entity_id:
+#      - light.luz_cozinha_1
+#      - light.luz_cozinha_2
+#   #   - light.light_hall_garage
 

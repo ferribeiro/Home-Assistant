@@ -1,0 +1,96 @@
+# 
+#     _         _                                              _   _       _        _ 
+#    / \  _   _| |_ ___  _ __ ___   __ _  ___ ___   ___  ___  | \ | | __ _| |_ __ _| |
+#   / _ \| | | | __/ _ \| '_ ` _ \ / _` |/ __/ _ \ / _ \/ __| |  \| |/ _` | __/ _` | |
+#  / ___ \ |_| | || (_) | | | | | | (_| | (_| (_) |  __/\__ \ | |\  | (_| | || (_| | |
+# /_/   \_\__,_|\__\___/|_| |_| |_|\__,_|\___\___/ \___||___/ |_| \_|\__,_|\__\__,_|_|
+# 
+# 
+# http://www.network-science.de/ascii/  (standard)
+#
+#-------------------------------------------------------------------------------------
+
+- id: natal_010  # enable xmas lights auto on/off automation on December 1st at midday.
+  alias: 'xmas_lights_enable'
+  description: "Automacao para ligar as automacoes de natal na epoca certa"
+
+  trigger:
+    platform: time
+    at: '12:05:05'
+
+  condition:
+    condition: template
+    value_template: '{{ now().month == 12 and now().day == 1 }}'  # Dia primeiro de Dezembro
+
+  action:
+  - service: automation.turn_on
+    entity_id: automation.xmas_lights_on
+  - service: automation.turn_on
+
+
+
+- id: natal_020  # disable xmas lights auto on/off automation on January 6th at midday.
+  alias: 'xmas_lights_disable'
+  description: "Automacao para desligar as automacoes de natal"
+
+  trigger:
+    platform: time
+    at: '12:00:05'
+
+  condition:
+    condition: template
+    value_template: '{{ now().month == 1 and now().day == 6 }}'  # Dia 6 de Janeiro
+
+  action:
+  - service: automation.turn_off
+    entity_id: automation.xmas_lights_on
+  - service: automation.turn_off
+
+# -----------------------------------------------------------------------
+
+- id: natal_030
+  alias: xmas_lights_on
+  description: "Automacao para ligar Luzes as de Natal a noite"
+  
+  trigger:
+    - platform: state
+      entity_id: sensor.flag_eh_noite
+      to: "Noite"
+
+  action:
+    - service: light.turn_on
+      entity_id: light.lvng_zgb_20db_natal
+    - service: light.turn_on
+      entity_id: light.coqueiro_zigbee_fita_luz
+    - service: light.turn_on
+      entity_id: light.coqueiro_zigbee_luz_solo
+    - service: switch.turn_on
+      entity_id: switch.tasmota_4ch_out1
+    - service: switch.turn_on
+      entity_id: switch.sonoff_basic_01_out01
+  mode: single
+
+
+- id: natal_040
+  alias: xmas_lights_off
+  description: "Automacao simples para desligar a Luzes as de Natal qunado o dia chegar"
+  
+  trigger:
+    - platform: state
+      entity_id: sensor.flag_eh_noite
+      to: "Dia"
+
+  action:
+    - service: light.turn_off
+      entity_id: light.lvng_zgb_20db_natal
+    - service: light.turn_off
+      entity_id: light.coqueiro_zigbee_fita_luz
+    - service: light.turn_off
+      entity_id: light.coqueiro_zigbee_luz_solo
+    - service: switch.turn_off
+      entity_id: switch.tasmota_4ch_out1
+    - service: switch.turn_off
+      entity_id: switch.sonoff_basic_01_out01
+  mode: single
+
+#----------------------------------------------------------------------

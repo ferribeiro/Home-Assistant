@@ -1,0 +1,626 @@
+#    _         _                       ____ _                      
+#   / \  _   _| |_ ___  _ __ ___      / ___| |__  _   ___   ____ _ 
+#  / _ \| | | | __/ _ \| '_ ` _ \    | |   | '_ \| | | \ \ / / _` |
+# / ___ \ |_| | || (_) | | | | | |_  | |___| | | | |_| |\ V / (_| |
+#/_/   \_\__,_|\__\___/|_| |_| |_(_)  \____|_| |_|\__,_| \_/ \__,_|
+#                                                                  
+# 
+# http://www.network-science.de/ascii/  (standard)
+
+
+
+#----------------------------------------------------------------------
+
+- id: '2000000002010'
+  alias: 2010 -  Aviso de Chuva IA
+  description: "Utiliza a IA Gemini para ununciar que vitrro estao abertos e esta chovendo. - esta ok - transportar para as automaões definitivas"
+  
+  variables:
+    prompt: >-
+            Você é a Chiquinha, assistente da casa do casal Fernando e Luciana. Seu sensor de chuva detectou que esta chovendo. Gere uma mensagem de vóz, Através da vóz da alexa, informando para quem esta em casa, que começou ou continua a chover e que: {%
+            set open_windows = [ "da sala de visitas" if is_state('binary_sensor.vitro_sala_estar_contact', 'on') else '',
+                                 "da Banheira no banheiro do casal" if is_state('binary_sensor.vitro_banheira_contact', 'on') else '',
+                                 "da Pia no banheiro do casal" if is_state('binary_sensor.vitro_banho_casal_contact', 'on') else '',
+                                 "do closet do casal" if is_state('binary_sensor.vitro_closet_casal_contact', 'on') else '',
+                                 "do banheiro da suite do meio" if (is_state('binary_sensor.vitro_suite_meio_ld_contact', 'on') or is_state('binary_sensor.vitro_suite_meio_le_contact', 'on')) else '',
+                                 "do banheiro do quarto de visitas" if is_state('binary_sensor.vitro_banho_visitas_contact', 'on') else '',
+                                 "do mezanino" if is_state('binary_sensor.vitro_mezanino_contact', 'on') else '']
+            -%}
+            {%- set open_windows = open_windows | select('!=', '') | list -%}
+            {%- if open_windows | length > 0 -%}
+              {% if open_windows | length == 1 %}
+                O vitrô {{ open_windows[0] }} está aberto.
+              {% else %}
+                Os vitrôs {{ open_windows | join(', ') }} estão abertos.
+              {% endif %}
+            {%- else -%}
+              Não têm nenhum vitrô aberta.
+            {%- endif -%}
+             Agora são {{ now().strftime( "%H:%M" ) }}. {% if is_state('device_tracker.s20_fernando', 'home') %}
+              O Fernando esta em casa
+            {% else %}
+              O Fernando não esta em casa
+            {% endif %}
+            {% if is_state('device_tracker.s23_da_lu', 'home') %}
+              A Luciana esta em casa
+            {% else %}
+              A Luciana não esta em casa
+            {% endif %}
+             . Informe todos os vitrôs que estão abertos, mas não como uma lista. Crie um frase, bonitinha, informale até com um pouquinho de humor. Não precisa dizer quem esta em casa ou não, nem as horas, use eesas as iformações para formar a frase. Não diga que é voz da Alexa.
+
+#Horas: {{ now ().hour }} horas e {{ now ().minute }} minutos.
+
+  trigger:
+#    - id: 'aviso chuva ia por previsao'
+#      platform: numeric_state
+#      entity_id: sensor.openweathermap_forecast_precipitation_probability
+#      attribute: OpenWeatherMap Forecast Precipitation probability
+#      above: 85
+
+    - id: 'aviso chuva ia por sensor'
+      platform: state
+      entity_id: binary_sensor.sensor_de_chuva_water_leak
+      to: 'on'  # O sensor está fechado quando está chovendo
+      
+#    - id: 'aviso chuva ia no botao de teste'
+#      platform: state
+#      entity_id: sensor.smart_button_action
+#      to: 'double'
+      
+  condition:
+    - condition: or
+      conditions:
+#        - condition: state
+#          entity_id: binary_sensor.vitro_sala_estar_contact
+#          state: 'on'  # Substitua pela sua entidade do sensor de janela
+#        - condition: state
+#          entity_id: binary_sensor.vitro_banheira_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_banho_casal_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_banho_visitas_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_closet_casal_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_mezanino_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_suite_meio_ld_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_suite_meio_le_contact
+#          state: 'on'
+#
+    - condition: and
+      conditions:
+##executa apenas uma vez por hora.
+        - condition: template
+          value_template: "{{ (as_timestamp(now()) - (as_timestamp(state_attr('automation.2010_aviso_de_deteccao_de_chuva', 'last_triggered') | default(0) ) | int) ) > 3600 }}"
+        
+  action:
+
+    - alias: Carrega Gemini IA Vision
+      service: google_generative_ai_conversation.generate_content
+      data:
+        prompt: "{{ prompt }}"
+      response_variable: agent
+
+    - alias: carrega helper com resposta da ia
+      service: input_text.set_value
+      data:
+        entity_id: input_text.para_teste_de_ia
+        value: "{{ agent.text }}"
+#        value: "{{ prompt }}"
+
+#    - delay: '00:00:00' # Waits 00 seconds
+
+    - alias: notifica pela alexa
+      service: notify.alexa_media
+      data:
+        target:
+            - media_player.echoshow_escritorio
+            - media_player.echodot
+            - media_player.echoshow_10
+            - media_player.echoshow_luciana
+            - media_player.firetv_home_theater
+            - media_player.firetv_loja
+            - media_player.firetv_quarto_casal
+        data:
+          type: tts #ou announce
+#        message: "teste. rodei até aqui"
+#        message: '{{ input_text.para_teste_de_ia }}'
+        message: '{{ agent.text }}'
+
+
+#----------------------------------------------------------------------
+
+#- id: '2000000002010'
+#  alias: 2010 - Aviso de Deteccao de chuva
+#  
+#  trigger:
+#    - platform: state
+#      entity_id: binary_sensor.sensor_de_chuva_water_leak
+#      to: 'on'  # O sensor está fechado quando está chovendo
+#
+##executa apenas uma vez por hora.
+#  condition:
+#    - condition: template
+#      value_template: "{{ (as_timestamp(now()) - (as_timestamp(state_attr('automation.2010_aviso_de_deteccao_de_chuva', 'last_triggered') | default(0) ) | int) ) > 3600 }}"
+#
+#  action:
+#    - service: notify.alexa_media
+#      data:
+#        target:
+##            - media_player.todas_as_alexas
+#            - media_player.echoshow_escritorio
+#            - media_player.echodot
+#            - media_player.echoshow_10
+#            - media_player.echoshow_luciana
+#            - media_player.firetv_home_theater
+#            - media_player.firetv_loja
+#            - media_player.firetv_quarto_casal
+#            - media_player.this_device
+#        data:
+#          type: tts #ou announce
+#        message: "Começou a chover"
+#
+
+# ------------------------------------------------------------
+
+- id: '2000000002020'
+  alias: 2020 - Aviso de Chuva ao Abrir Janela da Sala Chovendo
+  
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.vitro_sala_estar_contact
+      to: 'on'
+      
+#    - platform: numeric_state
+#      entity_id: sensor.openweathermap_forecast_precipitation_probability
+#      attribute: OpenWeatherMap Forecast Precipitation probability
+#      above: 85
+
+#    - platform: state
+#      entity_id: binary_sensor.sensor_de_chuva_water_leak
+#      to: 'on'  # O sensor está fechado quando está chovendo
+
+  condition:
+    condition: and
+    conditions:
+
+      - condition: state
+        entity_id: binary_sensor.vitro_sala_estar_contact
+        state: 'on'
+
+      - condition: state
+        entity_id: binary_sensor.sensor_de_chuva_water_leak
+        state: 'on'  # O sensor está fechado quando está chovendo
+
+#executa apenas uma vez por hora.
+      - condition: template
+        value_template: "{{ (as_timestamp(now()) - (as_timestamp(state_attr('automation.2010_aviso_de_deteccao_de_chuva', 'last_triggered') | default(0) ) | int) ) > 3600 }}"
+      
+#      - condition: numeric_state
+#        entity_id: sensor.openweathermap_forecast_precipitation_probability
+#        attribute: OpenWeatherMap Forecast Precipitation probability
+#        above: 85
+
+  action:
+
+    - delay: '00:00:10' # Waits 10 seconds
+  
+    - service: notify.alexa_media
+      data:
+        target:
+#            - media_player.todas_as_alexas
+            - media_player.echoshow_escritorio
+            - media_player.echodot
+            - media_player.echoshow_10
+            - media_player.echoshow_luciana
+            - media_player.firetv_home_theater
+            - media_player.firetv_loja
+            - media_player.firetv_quarto_casal
+            - media_player.this_device
+        data:
+          type: tts #ou announce
+        message: "Esta chovendo, seria prudente deixar esta janela fechada"
+ #       message: "No momento a probabilidade de chuva é maior que {{ states('sensor.openweathermap_forecast_precipitation_probability') }} % , e a janela da sala de estar esta aberta, seria prudente fechá-la."
+ 
+ #----------------------------------------------------------------------
+
+- id: '2000000002025'
+  alias: 2025 - Aviso de Chuva ao Abrir Janela da Sala com alta probabilidade de Chuva
+  
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.vitro_sala_estar_contact
+      to: 'on'
+      
+#    - platform: numeric_state
+#      entity_id: sensor.openweathermap_forecast_precipitation_probability
+#      attribute: OpenWeatherMap Forecast Precipitation probability
+#      above: 85
+
+#    - platform: state
+#      entity_id: binary_sensor.sensor_de_chuva_water_leak
+#      to: 'on'  # O sensor está fechado quando está chovendo
+
+  condition:
+    condition: and
+    conditions:
+
+      - condition: state
+        entity_id: binary_sensor.vitro_sala_estar_contact
+        state: 'on'
+
+#      - condition: state
+#        entity_id: binary_sensor.sensor_de_chuva_water_leak
+#        state: 'on'  # O sensor está fechado quando está chovendo
+
+      - condition: numeric_state
+        entity_id: sensor.openweathermap_forecast_precipitation_probability
+        attribute: OpenWeatherMap Forecast Precipitation probability
+        above: 85
+
+#executa apenas uma vez por hora.
+      - condition: template
+        value_template: "{{ (as_timestamp(now()) - (as_timestamp(state_attr('automation.2010_aviso_de_deteccao_de_chuva', 'last_triggered') | default(0) ) | int) ) > 3600 }}"
+
+  action:
+
+    - delay: '00:00:10' # Waits 10 seconds
+  
+    - service: notify.alexa_media
+      data:
+        target:
+#            - media_player.todas_as_alexas
+            - media_player.echoshow_escritorio
+            - media_player.echodot
+            - media_player.echoshow_10
+            - media_player.echoshow_luciana
+            - media_player.firetv_home_theater
+            - media_player.firetv_loja
+            - media_player.firetv_quarto_casal
+            - media_player.this_device
+        data:
+          type: tts #ou announce
+        message: "No momento a probabilidade de chuva é maior que {{ states('sensor.openweathermap_forecast_precipitation_probability') }} % , melhor manter essa janela fechada."
+
+#----------------------------------------------------------------------
+
+- id: '2000000002030'
+  alias: 2030 -  Aviso de Chuva nas Janelas
+  description: ''
+
+  trigger:
+#    - platform: numeric_state
+#      entity_id: sensor.openweathermap_forecast_precipitation_probability
+#      attribute: OpenWeatherMap Forecast Precipitation probability
+#      above: 85
+    - platform: state
+      entity_id: binary_sensor.sensor_de_chuva_water_leak
+      to: 'on'  # O sensor está fechado quando está chovendo
+
+  condition:
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.vitro_sala_estar_contact
+          state: 'on'  # Substitua pela sua entidade do sensor de janela
+        - condition: state
+          entity_id: binary_sensor.vitro_banheira_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_banho_casal_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_banho_visitas_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_closet_casal_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_mezanino_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_suite_meio_ld_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_suite_meio_le_contact
+          state: 'on'
+
+    - condition: and
+      conditions:
+#executa apenas uma vez por hora.
+        - condition: template
+          value_template: "{{ (as_timestamp(now()) - (as_timestamp(state_attr('automation.2010_aviso_de_deteccao_de_chuva', 'last_triggered') | default(0) ) | int) ) > 3600 }}"
+        
+  action:
+ 
+#    - service: media_player.turn_on
+#      entity_id: media_player.seu_reprodutor_de_midia
+#      data:
+
+    - delay: '00:00:20' # Waits 30 seconds
+
+    - service: notify.alexa_media
+      data:
+        target:
+#            - media_player.todas_as_alexas
+            - media_player.echoshow_escritorio
+            - media_player.echodot
+            - media_player.echoshow_10
+            - media_player.echoshow_luciana
+            - media_player.firetv_home_theater
+            - media_player.firetv_loja
+            - media_player.firetv_quarto_casal
+            - media_player.this_device
+        data:
+          type: tts #ou announce
+        message: >
+          Esta chovendo agora e: {%
+          set open_windows = [ "da sala de visitas" if is_state('binary_sensor.vitro_sala_estar_contact', 'on') else '',
+                               "da Banheira" if is_state('binary_sensor.vitro_banheira_contact', 'on') else '',
+                               "do banheiro do casal" if is_state('binary_sensor.vitro_banho_casal_contact', 'on') else '',
+                               "do closet do casal" if is_state('binary_sensor.vitro_closet_casal_contact', 'on') else '',
+                               "do banheiro da suite do meio" if (is_state('binary_sensor.vitro_suite_meio_ld_contact', 'on') or is_state('binary_sensor.vitro_suite_meio_le_contact', 'on')) else '',
+                               "do banheiro do quarto de visitas" if is_state('binary_sensor.vitro_banho_visitas_contact', 'on') else '',
+                               "do mezanino" if is_state('binary_sensor.vitro_mezanino_contact', 'on') else '']
+          -%}
+          {%- set open_windows = open_windows | select('!=', '') | list -%}
+          {%- if open_windows | length > 0 -%}
+            {% if open_windows | length == 1 %}
+              O vitrô {{ open_windows[0] }} está aberto.
+            {% else %}
+              Os vitrôs {{ open_windows | join(', ') }} estão abertos.
+            {% endif %}
+          {%- else -%}
+            pode ficar tranquila que não têm nenhum vitrô aberta.
+          {%- endif -%}
+
+#----------------------------------------------------------------------
+
+- id: '2000000002035'
+  alias: 2035 -  Aviso de Possibilidade de Chuva nas Janelas
+  description: ''
+
+  trigger:
+    - id: 'trigger_weater'
+      platform: numeric_state
+      entity_id: sensor.openweathermap_forecast_precipitation_probability
+      attribute: OpenWeatherMap Forecast Precipitation probability
+      above: 85
+#    - platform: state
+#      entity_id: binary_sensor.sensor_de_chuva_water_leak
+#      to: 'on'  # O sensor está fechado quando está chovendo
+      
+ #   - id: 'trigger_tst'
+ #     platform: state
+ #     entity_id: sensor.smart_button_action
+ #     to: 'single'
+
+  condition:
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.vitro_sala_estar_contact
+          state: 'on'  # Substitua pela sua entidade do sensor de janela
+        - condition: state
+          entity_id: binary_sensor.vitro_banheira_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_banho_casal_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_banho_visitas_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_closet_casal_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_mezanino_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_suite_meio_ld_contact
+          state: 'on'
+        - condition: state
+          entity_id: binary_sensor.vitro_suite_meio_le_contact
+          state: 'on'
+
+    - condition: and
+      conditions:
+#executa apenas uma vez por hora.
+        - condition: template
+          value_template: "{{ (as_timestamp(now()) - (as_timestamp(state_attr('automation.2010_aviso_de_deteccao_de_chuva', 'last_triggered') | default(0) ) | int) ) > 3600 }}"
+
+  action:
+ 
+#    - service: media_player.turn_on
+#      entity_id: media_player.seu_reprodutor_de_midia
+#      data:
+
+    - delay: '00:00:10' # Wait 10 seconds
+
+    - service: notify.alexa_media
+      data:
+        target:
+#            - media_player.todas_as_alexas
+            - media_player.echoshow_escritorio
+            - media_player.echodot
+            - media_player.echoshow_10
+            - media_player.echoshow_luciana
+            - media_player.firetv_home_theater
+            - media_player.firetv_loja
+            - media_player.firetv_quarto_casal
+            - media_player.this_device
+        data:
+          type: tts #ou announce
+        message: >
+          A probabilidade de chuva é bem grande e: {%
+          set open_windows = [ "da sala de visitas" if is_state('binary_sensor.vitro_sala_estar_contact', 'on') else '',
+                               "da Banheira" if is_state('binary_sensor.vitro_banheira_contact', 'on') else '',
+                               "do banheiro do casal" if is_state('binary_sensor.vitro_banho_casal_contact', 'on') else '',
+                               "do closet do casal" if is_state('binary_sensor.vitro_closet_casal_contact', 'on') else '',
+                               "do banheiro da suite do meio" if (is_state('binary_sensor.vitro_suite_meio_ld_contact', 'on') or is_state('binary_sensor.vitro_suite_meio_le_contact', 'on')) else '',
+                               "do banheiro do quarto de visitas" if is_state('binary_sensor.vitro_banho_visitas_contact', 'on') else '',
+                               "do mezanino" if is_state('binary_sensor.vitro_mezanino_contact', 'on') else '']
+          -%}
+          {%- set open_windows = open_windows | select('!=', '') | list -%}
+          {%- if open_windows | length > 0 -%}
+            {% if open_windows | length == 1 %}
+              O vitrô {{ open_windows[0] }} está aberto.
+            {% else %}
+              Os vitrôs {{ open_windows | join(', ') }} estão abertos.
+            {% endif %}
+          {%- else -%}
+            pode ficar tranquila que não têm nenhum vitrô aberta.
+          {%- endif -%}
+
+
+
+
+
+
+
+
+
+#----------------------------------------------------------------------
+
+- id: '2000000002031'
+  alias: 2031 -  Aviso de Chuva IA
+  description: "Utiliza a IA Gemini para ununciar que vitrro estao abertos e esta chovendo. - esta ok - transportar para as automaões definitivas"
+  
+#  variables:
+#    prompt: >-
+#      ola tudo bem?
+
+  variables:
+    prompt: >-
+            Você é a Chiquinha, assistente da casa do casal Fernando e Luciana. Seu sensor de chuva detectou que esta chovendo. Gere uma mensagem de vóz, Através da vóz da alexa, informando para quem esta em casa, que começou ou continua a chover e que: {%
+            set open_windows = [ "da sala de visitas" if is_state('binary_sensor.vitro_sala_estar_contact', 'on') else '',
+                                 "da Banheira no banheiro do casal" if is_state('binary_sensor.vitro_banheira_contact', 'on') else '',
+                                 "da Pia no banheiro do casal" if is_state('binary_sensor.vitro_banho_casal_contact', 'on') else '',
+                                 "do closet do casal" if is_state('binary_sensor.vitro_closet_casal_contact', 'on') else '',
+                                 "do banheiro da suite do meio" if (is_state('binary_sensor.vitro_suite_meio_ld_contact', 'on') or is_state('binary_sensor.vitro_suite_meio_le_contact', 'on')) else '',
+                                 "do banheiro do quarto de visitas" if is_state('binary_sensor.vitro_banho_visitas_contact', 'on') else '',
+                                 "do mezanino" if is_state('binary_sensor.vitro_mezanino_contact', 'on') else '']
+            -%}
+            {%- set open_windows = open_windows | select('!=', '') | list -%}
+            {%- if open_windows | length > 0 -%}
+              {% if open_windows | length == 1 %}
+                O vitrô {{ open_windows[0] }} está aberto.
+              {% else %}
+                Os vitrôs {{ open_windows | join(', ') }} estão abertos.
+              {% endif %}
+            {%- else -%}
+              Não têm nenhum vitrô aberta.
+            {%- endif -%}
+             Agora são {{ now().strftime( "%H:%M" ) }}. {% if is_state('device_tracker.s20_fernando', 'home') %}
+              O Fernando esta em casa
+            {% else %}
+              O Fernando não esta em casa
+            {% endif %}
+            {% if is_state('device_tracker.s23_da_lu', 'home') %}
+              A Luciana esta em casa
+            {% else %}
+              A Luciana não esta em casa
+            {% endif %}
+             . Informe todos os vitrôs que estão abertos, mas não como uma lista. Crie um frase, bonitinha, informale até com um pouquinho de humor. Não precisa dizer quem esta em casa ou não, nem as horas, use eesas as iformações para formar a frase. Não diga que é voz da Alexa.
+
+# às {{ now ().hour }} horas e {{ now ().minute }} minutos.
+
+  trigger:
+
+    - id: 'aviso chuva ia por previsao'
+      platform: numeric_state
+      entity_id: sensor.openweathermap_forecast_precipitation_probability
+      attribute: OpenWeatherMap Forecast Precipitation probability
+      above: 85
+
+    - id: 'aviso chuva ia por sensor'
+    - platform: state
+      entity_id: binary_sensor.sensor_de_chuva_water_leak
+      to: 'on'  # O sensor está fechado quando está chovendo
+     
+#    - id: 'aviso chuva ia no botao de teste'
+#      platform: state
+#      entity_id: sensor.smart_button_action
+#      to: 'single'
+      
+#  condition:
+#    - condition: or
+#      conditions:
+#        - condition: state
+#          entity_id: binary_sensor.vitro_sala_estar_contact
+#          state: 'on'  # Substitua pela sua entidade do sensor de janela
+#        - condition: state
+#          entity_id: binary_sensor.vitro_banheira_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_banho_casal_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_banho_visitas_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_closet_casal_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_mezanino_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_suite_meio_ld_contact
+#          state: 'on'
+#        - condition: state
+#          entity_id: binary_sensor.vitro_suite_meio_le_contact
+#          state: 'on'
+#
+#    - condition: and
+#      conditions:
+##executa apenas uma vez por hora.
+#        - condition: template
+#          value_template: "{{ (as_timestamp(now()) - (as_timestamp(state_attr('automation.2010_aviso_de_deteccao_de_chuva', 'last_triggered') | default(0) ) | int) ) > 3600 }}"
+        
+  action:
+
+    - alias: Carrega Gemini IA Vision
+      service: google_generative_ai_conversation.generate_content
+      data:
+        prompt: "{{ prompt }}"
+      response_variable: agent
+
+    - alias: carrega helper com resposta da ia
+      service: input_text.set_value
+      data:
+        entity_id: input_text.para_teste_de_ia
+        value: "{{ agent.text }}"
+#        value: "{{ prompt }}"
+
+#    - delay: '00:00:00' # Waits 00 seconds
+
+    - alias: notifica pela alexa
+      service: notify.alexa_media
+      data:
+        target:
+            - media_player.echoshow_escritorio
+#            - media_player.echodot
+#            - media_player.echoshow_10
+#            - media_player.echoshow_luciana
+#            - media_player.firetv_home_theater
+#            - media_player.firetv_loja
+#            - media_player.firetv_quarto_casal
+        data:
+          type: tts #ou announce
+#        message: "teste. rodei até aqui"
+#        message: '{{ input_text.para_teste_de_ia }}'
+        message: '{{ agent.text }}'
+
+
+
+
+
+#----------------------------------------------------------------------

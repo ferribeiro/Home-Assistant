@@ -1,0 +1,110 @@
+#  _   _                        _____ _                _            
+# | | | | ___  _ __ ___   ___  |_   _| |__   ___  __ _| |_ ___ _ __ 
+# | |_| |/ _ \| '_ ` _ \ / _ \   | | | '_ \ / _ \/ _` | __/ _ \ '__|
+# |  _  | (_) | | | | | |  __/   | | | | | |  __/ (_| | ||  __/ |   
+# |_| |_|\___/|_| |_| |_|\___|   |_| |_| |_|\___|\__,_|\__\___|_|   
+#                                                                   
+#     _         _                        _   _                 
+#    / \  _   _| |_ ___  _ __ ___   __ _| |_(_) ___  _ __  ___ 
+#   / _ \| | | | __/ _ \| '_ ` _ \ / _` | __| |/ _ \| '_ \/ __|
+#  / ___ \ |_| | || (_) | | | | | | (_| | |_| | (_) | | | \__ \
+# /_/   \_\__,_|\__\___/|_| |_| |_|\__,_|\__|_|\___/|_| |_|___/
+
+# http://www.network-science.de/ascii/  (standard)
+
+#----------------------------------------------------------------------
+
+# https://platform.openai.com/api-keys
+# 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
+
+#----------------------------------------------------------------------
+
+#  1 = on
+#  2 = off
+#  3 = Lua
+# 16 = 1
+# 17 = 2
+# 18 = 3
+# 19 = 4
+#  8 = -
+#  9 = +
+
+- id: '8000000008001'
+  alias: 8001 - ESPHome Wizmote Receiver esc
+  description: ''
+  trigger:
+  - platform: event
+    event_type: esphome.wizmote_choose
+    event_data:
+      mac: 6c29900e5e24  #6C.29.90.0E.5E.24
+  condition: []
+  action:
+
+  - variables:
+      button: '{{ trigger.event.data.button | int }}'
+
+      button1: '{{ trigger.event.data.sequence }}' # opcional
+  - service: input_text.set_value                  # opcional
+    data:                                          # opcional
+      entity_id: input_text.wiz_mote               # opcional
+      value: '{{ button1 }}'                       # opcional
+
+  - choose:
+    - conditions:
+        - '{{ button | int == 16 }}'  # Botao 1 - Toggle Luz 1
+      sequence:
+      - service: light.toggle
+        entity_id:
+        - light.hometheater01_out_1
+
+    - conditions:
+        - '{{ button | int == 17 }}'  # Botao 2 - Toggle Luz 2
+      sequence:
+      - service: light.toggle
+        entity_id:
+        - light.hometheater01_out_2
+
+    - conditions:
+        - '{{ button | int == 18 }}'  # Botao 3 - Toggle Luz 3
+      sequence:
+      - service: light.toggle
+        entity_id:
+        - light.hometheater01_out_3
+
+    - conditions:
+        - '{{ button | int == 1 }}'  # Botao ON Desliga Ar condicionado do Home Theater
+      sequence:
+      - service: script.liga_ar_hometheater
+        data: {}
+
+    - conditions:
+        - '{{ button | int == 2 }}'  # Botao OFF Desliga Ar condicionado do Home Theater
+      sequence:
+      - service: script.desliga_ar_hometheater
+        data: {}
+
+    - conditions:
+        - '{{ button | int == 19 }}'  # Botao 2 - Toggle Projetor
+      sequence:
+      - service: script.liga_desliga_pta_e8000
+        data: {}
+
+    - conditions:
+        - '{{ button | int == 3 }}'  # Botao 3 - Toggle Receiver
+      sequence:
+      - service: script.liga_desliga_onkio_tx_nr1010
+        data: {}
+
+    - conditions:
+        - '{{ button | int == 9 }}'  # Botao ON - Receiver Volume +
+      sequence:
+      - service: script.vol_up_onkio_tx_nr1010
+        data: {}
+
+    - conditions:
+        - '{{ button | int == 8 }}'  # Botao ON - Receiver Volume -
+      sequence:
+      - service: script.vol_dn_onkio_tx_nr1010
+        data: {}
+        
+  mode: restart

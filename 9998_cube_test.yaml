@@ -1,0 +1,156 @@
+#
+#  ___         _____         _        _         _                        _   _                       
+# |_ _|_ __   |_   _|__  ___| |_     / \  _   _| |_ ___  _ __ ___   __ _| |_(_) ___  _ __  _ __  ___ 
+#  | || '_ \    | |/ _ \/ __| __|   / _ \| | | | __/ _ \| '_ ` _ \ / _` | __| |/ _ \| '_ \| '_ \/ __|
+#  | || | | |   | |  __/\__ \ |_   / ___ \ |_| | || (_) | | | | | | (_| | |_| | (_) | | | | | | \__ \
+# |___|_| |_|   |_|\___||___/\__| /_/   \_\__,_|\__\___/|_| |_| |_|\__,_|\__|_|\___/|_| |_|_| |_|___/
+#
+
+# http://www.network-science.de/ascii/  (standard)
+
+# Testes com o Cubo
+
+- id: cube_1
+  alias: acender_wled_cube_side_0_right
+  description: 'Acender wled teto girando magic cube para direita com face 0 para cima'
+  
+  trigger:
+    - platform: state
+      entity_id: sensor.cubo_action
+      to: 'rotate_right'  #
+
+  condition:
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: sensor.cubo_side
+          state: '0'
+       
+  action:
+    service: light.turn_on
+    entity_id:
+      - light.wled_teto_master
+      - light.wled_churras_master
+      - light.wled_pia_master
+
+- id: cube_2
+  alias: apagar_wled_cube_side_0_left
+  description: 'Apagar wled teto girando magic cube para esquerda com face 0 para cima'
+  
+  trigger:
+    - platform: state
+      entity_id: sensor.cubo_action
+      to: 'rotate_left'  #
+      
+  condition:
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: sensor.cubo_side
+          state: '0'
+        
+  action:
+    service: light.turn_off
+    entity_id:
+      - light.wled_teto_master
+      - light.wled_churras_master
+      - light.wled_pia_master
+    
+
+#---------------
+
+- id: cube_3
+  alias: acender_luzes_lazer_cube_side_1_right
+  description: 'Acender luz lazer girando magic cube para direita com face 1 para cima'
+  
+  trigger:
+    - platform: state
+      entity_id: sensor.cubo_action
+      to: 'rotate_right'  #
+
+  condition:
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: sensor.cubo_side
+          state: '1'
+       
+  action:
+    service: light.turn_on
+    entity_id:
+      - light.spots_dicroicas
+      - light.spots_noturnos
+      - light.plafon
+      
+#    - delay: '00:00:01'
+#    - service: light.turn_off
+#      entity_id: light.office01_desk_lighting
+
+- id: cube_4
+  alias: apagar_luzes lazer_cube_side_1_left
+  description: 'Apagar luz lazer girando magic cube para esquerda com face 1 para cima'
+
+  trigger:
+    - platform: state
+      entity_id: sensor.cubo_action
+      to: 'rotate_left'  #
+      
+  condition:
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: sensor.cubo_side
+          state: '1'
+        
+  action:
+    service: light.turn_off
+    entity_id:
+      - light.spots_dicroicas
+      - light.spots_noturnos
+      - light.plafon
+
+#---------------
+
+- id: cube_5
+  alias: acender_led_cube_side_4_right
+  description: 'Acender led girando magic cube para direita com face 4 para cima'
+
+  trigger:
+    - platform: state
+      entity_id: sensor.cubo_action
+      to: 'rotate_right'  #
+
+  condition:
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: sensor.cubo_side
+          state: '4'
+       
+  action:
+    - service: light.turn_on
+      entity_id: light.perfil_led
+      
+#    - delay: '00:00:01'
+#    - service: light.turn_off
+#      entity_id: light.office01_desk_lighting
+
+- id: cube_6
+  alias: apagar_led_cube_side_4_left
+  description: 'Apagar led girando magic cube para esquerda com face 4 para cima'
+
+  trigger:
+    - platform: state
+      entity_id: sensor.cubo_action
+      to: 'rotate_left'  #
+      
+  condition:
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: sensor.cubo_side
+          state: '4'
+        
+  action:
+    - service: light.turn_off
+      entity_id: light.perfil_led

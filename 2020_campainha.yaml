@@ -1,0 +1,165 @@
+#     _         _                                            
+#    / \  _   _| |_ ___  _ __ ___   __ _  ___ ___   ___  ___ 
+#   / _ \| | | | __/ _ \| '_ ` _ \ / _` |/ __/ _ \ / _ \/ __|
+#  / ___ \ |_| | || (_) | | | | | | (_| | (_| (_) |  __/\__ \
+# /_/   \_\__,_|\__\___/|_| |_| |_|\__,_|\___\___/ \___||___/
+#                                                            
+#      _         ___       _             __                  
+#   __| | ___   |_ _|_ __ | |_ ___ _ __ / _| ___  _ __   ___ 
+#  / _` |/ _ \   | || '_ \| __/ _ \ '__| |_ / _ \| '_ \ / _ \
+# | (_| | (_) |  | || | | | ||  __/ |  |  _| (_) | | | |  __/
+#  \__,_|\___/  |___|_| |_|\__\___|_|  |_|  \___/|_| |_|\___|
+#
+
+# http://www.network-science.de/ascii/  (standard)
+
+#----------------------------------------------------------------------
+
+# https://platform.openai.com/api-keys
+# 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
+
+#      Alguem esta tocando o intefone na frente da casa. Analise as 3 imagens das câmeras e do interfone da portão da frente da minha casa. Descreva em detalhes o que aconteceu na imagem. Analize as 3 imagens como um todo, não descreva imagem por imagem. Não leia os textos inseridos pelo DVR. Não minta nem adicione informações adicionais que você não consiga ver nas imagens. Se você identificar algum risco de segurança, avise-me no final da mensagem. Não faça uma descrição longa.
+
+#       Alguem esta tocando o intefone na frente da minha casa. Analise as 3 imagens, camera 5 mostra a frente da casa da direita para a esquerda, a camera 2 mostra a casa da esquerda para a direita e a imagem do interfone da portão da frente da minha casa mostra a vista de frente para a rua. Analize as 3 imagens como um todos e descreva em detalhes o que esta acontecendo, tentando identificar quem esta tocando o interfone. Não descreva imagem por imagem. Não leia os textos inseridos pelo DVR nas imagens. Não minta nem adicione informações não esteja nas imagens. Se, e apenas se, você identificar algum risco de segurança, avise-me no final da mensagem. Em determinados horários alguma das imagens pode ficar embaçada por causa da posição do sol, não precisa falar sobre isso, tome como base as demais imagens. Não faça uma descrição longa, tente ser sucinto.
+
+
+
+#      Alguém está tocando o interfone na frente da minha casa. Analise a imagem do interfone no portão da frente onde é possível ver a rua de frente.
+#      Se necessário use as imagens da câmera 5 que mostra a frente da casa da direita para a esquerda e a câmera 2 que mostra a frente da casa da direita para a esquerda.
+#      Analise as três imagens como um todo e descreva detalhadamente o que está acontecendo, tentando identificar quem está tocando o interfone.
+#      Não dscreva a imagem de cada camera individualmente, analize as imagens como um todo e não ler os textos inseridos pelo DVR, como nome das cameras, nas imagens;
+#      Não adicione informações que não estejam presentes nas imagens;
+#      Comente apenas o que viu, e não o que não viu, não invente coisas;
+#      Se identificar algum risco de segurança, por favor, avise-me no final da mensagem.
+#      Limite-se a frente da casa onde ha um muro amarelo.
+#      Ha um monte de terra na frente da minha casa, não confunda com uma pessoa;
+#      Em alguns horários, uma das imagens pode ficar embaçada devido à posição do sol, não é necessário abordar esse aspecto, considere as demais imagens como referência;
+#      Antes de descreve informe que tem gente tocando o interfone e também as horas. Busque ser sucinto na descrição sem omitor nem inventar nada.
+      
+
+- id: '2020000009910'
+- alias: 'Descreve quem tocou o interfone'
+  description: "Utiliza a IA Gemini para descreve a imagem capturada pelas cameras da frente"
+  
+  variables:
+    prompt: >-
+      Tem alguém alguem tocando o intefone na frente da casa. Analise as imagens das 2 câmeras e a imagem do interfone da portão da frente da minha casa. Começe informando que horas são sem mencionar os segundos, se tem alguem tocando o interfone, então descreva em o que aconteceu na imagem com detalhes mas de forma sucinta. Analize as 3 imagens como um todo, não descreva imagem por imagem e nao diga de qual camera esta descrevendo. Não leia os textos inseridos pelo DVR. Não minta nem adicione informações que você não estejam nas imagens. Se você identificar algum risco de segurança, avise-me no final da mensagem. Não faça uma descrição longa e não invente.
+
+
+  trigger:
+    - id: 'trigger_intefone_call'
+      platform: state
+      entity_id: sensor.interfone_call_status
+      to: 'ringing'  # Foi para tocando
+      
+#    - id: 'trigger_tst_interfone'
+#      platform: state
+#      entity_id: sensor.smart_button_action
+#      to: 'single'
+ 
+#  condition:
+#    - condition: state
+#      entity_id: device_tracker.douglas
+#      state: 'not_home'
+#    - condition: state
+#      entity_id: device_tracker.luana
+#      state: 'not_home'
+
+  action:
+    - alias: Fetch Snapshot interfone
+      service: camera.snapshot
+      data:
+         entity_id: camera.interfone
+         filename: '/config/www/images/cameras/camera_interfone.jpg'
+
+    - alias: Fetch Snapshot camera 1
+      service: camera.snapshot
+      data:
+         entity_id: camera.frente_1
+         filename: '/config/www/images/cameras/camera_frente1.jpg'
+ 
+    - alias: Fetch Snapshot camera 2
+      service: camera.snapshot
+      data:
+         entity_id: camera.frente_2
+         filename: '/config/www/images/cameras/camera_frente2.jpg'
+
+    - alias: Gemini IA Vision
+      service: google_generative_ai_conversation.generate_content
+      data:
+        prompt: "{{ prompt }}"
+        image_filename: /config/www/images/cameras/camera_interfone.jpg
+ #       image_filename: /config/www/images/cameras/camera_frente1.jpg
+ #       image_filename: /config/www/images/cameras/camera_frente2.jpg
+      response_variable: agent
+
+    - alias: carrega helper com resposta da ia
+      service: input_text.set_value
+      data:
+        entity_id: input_text.para_teste_de_ia
+        value: "{{ agent.text }}"
+#        value: "{{ prompt }}"
+
+    - alias: notifica pela alexa
+      service: notify.alexa_media
+      data:
+        target:
+            - media_player.echoshow_escritorio
+            - media_player.echoshow_10
+
+        data:
+          type: tts #ou announce
+#        message: "teste. rodei até aqui"
+#        message: '{{ input_text.para_teste_de_ia }}'
+        message: '{{ agent.text }}'
+
+     
+ #   - alias: notifica pela alexa com mensagem teste
+ #     service: notify.alexa_media
+ #     data:
+ #       target:
+ #           - media_player.echoshow_escritorio
+ #       data:
+ #         type: tts #ou announce
+ #       message: "teste. rodei até aqui"
+
+# -----------------------------------------------------------------------------------------------------
+
+#      - !secret tel_chat_id_fe # Fernando
+#      - !secret tel_chat_id_lu # Luciana
+#      - !secret tel_group_id_c # Grupo da Chiquinha
+
+
+# Telegram Bot
+#  tel_api_key: 1074702690:AAHpQJKE2f5Emi2q35e6fiG4KCXZd8L4hEc
+#  tel_group_id_c: -411043479 # Grupo da Chiquinha
+#  tel_chat_id_ch: 504458803  # Chiquinha
+#  tel_chat_id_fe: 869628948  # Fernando
+#  tel_chat_id_br: 661437970  # Brenda
+#  tel_chat_id_lu: 900331339  # Luciana
+
+# -----------------------------------------------------------------------------------------------------
+
+- id: '2020000009950'
+  alias: 9940 -  Aviso de Interfone Tocando
+  description: ''
+
+  trigger:
+    - platform: state
+      entity_id: sensor.interfone_call_status
+      to: 'ringing'  # Foi para tocando
+
+  action:
+    - service: notify.alexa_media
+      data:
+        target:
+            - media_player.echodot
+#           - media_player.echoshow_10
+#            - media_player.echoshow_escritorio
+            - media_player.echoshow_luciana
+            - media_player.firetv_home_theater
+            - media_player.firetv_loja
+            - media_player.firetv_quarto_casal
+        data:
+          type: announce #tts
+        message: "Tem gente tocando o interfone"
